@@ -1,0 +1,11 @@
+# query for wikidata which gets all S&P 500 Companies and there symbol.
+SELECT DISTINCT ?item ?itemLabel ?awardLabel ?awardStat ?tickerSymbol
+{
+    ?item wdt:P361* wd:Q242345;             # Items with the Occupation(P106) of Director(Q3455803) or a subclass(P279)
+          p:P414 ?awardStat .              # ... with an awarded(P166) statement
+    ?awardStat pq:P249 ?tickerSymbol.
+           
+    SERVICE wikibase:label {               # ... include the labels
+        bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en"
+    }
+}
