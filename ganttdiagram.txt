@@ -1,0 +1,29 @@
+gantt
+    title Bachelorarbeit Gantt-Diagramm
+
+    section Literaturrecherche
+    Grundsätzliche Literatur suchen :done, des1, 2023-12-01, 14d
+    Grundsätzliche Literatur bewerten :done, des2, after des1, 14d
+    Literatur überprüfen :done, des3, after des2, 3d
+    Erweiterte Literatur suchen :done, des4, after des3, 14d
+    Erweiterte Literatur bewerten :done, des5, after des4, 14d
+    
+
+    section Analyse
+    Grundsätzliche Datenerhebung :done, data, 2023-12-18, 7d
+    Grundsätzliche Datenanalyse :done, analysis, after data, 14d
+    Überprüfen der Analyse :done, check, after analysis, 3d
+    Erweiterte Datenerhebung :done, data_2, after check, 7d
+    Erweiterte Datenanalyse :done, analysis_2, after data_2, 14d
+
+    section Schreiben
+    Einleitung schreiben :done, intro, 2023-12-18, 7d
+    Hauptteil verfassen :done, main, 2023-12-18, 42d
+    Schlussfolgerung und Diskussion :done, conclusion, 2024-01-15, 14d
+
+    section Überarbeitung
+    Erste Überarbeitung :done, revision1, 2024-01-25, 14d
+    Korrekturlesen und Finishing :done, revision2, after revision1, 14d
+
+    section Abgabe
+    Abschluss der Arbeit :done, final, 2024-02-20, 10d
