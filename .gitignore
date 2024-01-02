@@ -2,3 +2,6 @@ secret_file.json
 
 data
 __pychace__
+
+*.code
+*.pyc
