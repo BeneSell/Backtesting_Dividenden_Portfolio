@@ -1,8 +1,4 @@
 # Backtesting_Dividenden_Portfolio
-
-
-# getting started with the notebooks
-
 ## Description
 
 This repository downloads financial data and prepares them for backtesting usage.
@@ -18,7 +14,7 @@ There are two important things which are not included directly in the online rep
 A `data` folder where all the data is stored. 
 The data folder has a structure like this:
 
-![Alt text](image-1.png)
+![Alt text](image-2.png)
 
 ---
 to get the company data you need two sources one is the rdf query which is here:
@@ -47,3 +43,15 @@ the secrect_file.json looks like this
 ```
 
 
+# Getting Started
+
+1. Create secret_file.json with your secret key
+2. Add folder structure as you need 
+3. Add `companies` and `stock_info` folder
+4. Add `s&p_companies_ticker_name.csv` inside the folder companies
+5. Open finacialmodelingprep_api_access.ipynb and follow the instructions inside
+
+This should do the trick.
+
+
+- if you have no `s&p_companies_ticker_name.csv` list you need to add all wikilist's csv into your companies folder
