@@ -44,17 +44,35 @@ class preproccessing_alphavantage_data():
         self.data_as_json = json.loads(data)
 
     def normalize_data(self):
+
         # normalize data
         normalized_json_df = pd.json_normalize(self.data_as_json)
+        print(normalized_json_df.count().iloc[0])
+        
         normalized_json_df = normalized_json_df.drop_duplicates("Meta Data.2. Symbol")
         normalized_json_df = normalized_json_df.dropna(axis=0,subset=["Meta Data.2. Symbol"])
+
+
         normalized_json_df = normalized_json_df.set_index("Meta Data.2. Symbol")
 
         transposed_df =  normalized_json_df.transpose()
         transposed_df = transposed_df.reset_index()
 
+        
+
+        # Monthly Adjusted Time Series.2024-02-01.2. high
+        # regex explained
+        # .* = match any character (except for line terminators) -> "Monthly Adjusted Time Series"
+        # (\d\d\d\d-\d\d-\d\d) = match a date -> "2024-02-01"
+        # .* = match any character (except for line terminators) -> ".2. high"
+        # r"\1 \2" = replace with the first and second group -> "2024-02-01 .2. high"
+        # index_extraced will be = "2024-02-01 .2. high"
+        # which then can be split by the dot and the date can be extracted
+
         transposed_df["index_extracted"] = transposed_df["index"].replace({r".*(\d\d\d\d-\d\d-\d\d)(.*)": r"\1 \2"}, regex=True)
         transposed_df[["date", "random_counter", "information"]] = transposed_df["index_extracted"].str.split(".", expand=True)
+
+
         transposed_df["date"] = pd.to_datetime(transposed_df["date"], errors="coerce")
         transposed_df.dropna(subset=['date'], inplace=True)
 
@@ -83,16 +101,14 @@ class preproccessing_fmp_data():
 
         # same as above but for stock value
 
-        self.raw_data_stock[1].keys()
 
+        # for testing it once before doing it in for loop
+        # print(self.raw_data_stock[1].keys())
 
-
-        pd.json_normalize(self.raw_data_stock[0]["data"]).keys()
-
-        df_stock = pd.DataFrame(pd.json_normalize(self.raw_data_stock[0]["data"]))
-        df_stock["date"] = pd.to_datetime(df_stock["date"]).dt.to_period('M')
-        print(df_stock.columns)
-        df_stock
+        # df_stock = pd.DataFrame(pd.json_normalize(self.raw_data_stock[0]["data"]))
+        # df_stock["date"] = pd.to_datetime(df_stock["date"]).dt.to_period('M')
+    
+        # df_stock
         from datetime import datetime, timedelta
 
         # Starting date (January 1, 1970)
@@ -108,7 +124,7 @@ class preproccessing_fmp_data():
         result_df = pd.DataFrame()
 
 
-        result_df["date"] = pd.to_datetime(months).to_period('M')
+        # result_df["date"] = pd.to_datetime(months).to_period('M')
 
 
 
@@ -117,6 +133,7 @@ class preproccessing_fmp_data():
             try:
             # unpivot json
                 df = pd.json_normalize(x['data'])
+                
             except:
                 # print(x)
                 # input()
@@ -136,7 +153,7 @@ class preproccessing_fmp_data():
             df['date'] = df['date'].dt.to_period('M')
                 
             df_melted = df.melt(id_vars=['date'], value_vars=['date', 'open', 'low', 'high', 'close', 'volume'])
-            print(x['symbol'])
+            
             # rename value column to json_response_2['symbol']
             # df_melted = df_melted.rename(columns={"value": x['symbol']})
             # join result df with df_melted on date
@@ -194,7 +211,7 @@ class preproccessing_fmp_data():
         months = [start_date + timedelta(days=30 * i) for i in range(num_months)]
 
 
-        result_df["date"] = pd.to_datetime(months).to_period('M')
+        # result_df["date"] = pd.to_datetime(months).to_period('M')
 
 
 
@@ -243,3 +260,7 @@ class preproccessing_fmp_data():
         # result_df.to_csv("../data/stock_infos/dividend_values_per_symbol.csv", index=False)
         print(result_df.columns)
         return result_df
+    
+    def pivot_dividenden_data(self, df : pd.DataFrame):
+        df_pivot = df.pivot_table(index=['date', 'variable'], columns='symbol', values='value', aggfunc='first').reset_index()
+        return df_pivot

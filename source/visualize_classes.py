@@ -19,8 +19,8 @@ class visualize_fmp():
         print(self.preproccessed_data.columns)
 
         df_to_plot = self.preproccessed_data[(self.preproccessed_data["variable"] == "adjDividend") & (self.preproccessed_data["symbol"] == "AAPL") ][["date", "value"]]
-
         # df_to_plot["date"] = pd.to_datetime(df_to_plot["date"])
+        
         df_to_plot = df_to_plot.set_index("date")
 
         # plt.plot(df_to_plot)
@@ -29,6 +29,25 @@ class visualize_fmp():
         plt.show()
 
     pass
+
+    def visualize_stock_data(self, stock_symbol:str):
+        
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+
+
+
+        df_to_plot = self.preproccessed_data_stock[(self.preproccessed_data_stock["variable"] == "low") 
+                                             & (self.preproccessed_data_stock["symbol"] == "MSFT") ][["date", "value"]]
+
+        # df_to_plot["date"] = pd.to_datetime(df_to_plot["date"])
+        df_to_plot = df_to_plot.set_index("date")
+
+        # plt.plot(df_to_plot)
+
+        df_to_plot.plot()
+        
+        pass
 
 class visualize_alphavantage():
 
@@ -55,10 +74,14 @@ class visualize_alphavantage():
 
         df_with_selected_information = df_with_selected_information.groupby(pd.Grouper(freq='M', key="date")).first().reset_index()
 
+        # print(df_with_selected_information.columns)
 
         df_to_plot = df_with_selected_information[["AAPL","ADBE", "MSFT", "date"]]
         # df_to_plot = df_to_plot[df_to_plot["date"] > datetime.datetime.fromisoformat("2011-12-31T00:00:00")]
         # df_to_plot = df_to_plot[df_to_plot["date"] < datetime.datetime.fromisoformat("2022-12-31T00:00:00")]
+
+        print(df_to_plot.columns)
+
 
         df_to_plot.set_index("date", inplace=True)
         # make a line plot
@@ -100,20 +123,4 @@ class visualize_alphavantage():
     
         pass
 
-    def visualize_stock_data(self, stock_symbol:str):
-        
-        import matplotlib.pyplot as plt
-        import seaborn as sns
-
-
-
-        df_to_plot = self.preproccessed_data_stock[(self.preproccessed_data_stock["variable"] == "low") & (self.preproccessed_data_stock["symbol"] == "MSFT") ][["date", "value"]]
-
-        # df_to_plot["date"] = pd.to_datetime(df_to_plot["date"])
-        df_to_plot = df_to_plot.set_index("date")
-
-        # plt.plot(df_to_plot)
-
-        df_to_plot.plot()
-        
-        pass
+    
