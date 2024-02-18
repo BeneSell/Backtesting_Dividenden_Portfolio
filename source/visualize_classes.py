@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 
 class visualize_fmp():
 
-    def __init__(self) -> None:
-            
-            pre_fmp = pre.preproccessing_fmp_data()
+    def __init__(self, pre_fmp: pre.preproccessing_fmp_data) -> None:
     
-            self.preproccessed_data = pre_fmp.normalize_dividenden_data()
-            self.preproccessed_data_stock = pre_fmp.normalize_stock_data()
+            self.preproccessed_data = pre_fmp.normalized_data
+            self.preproccessed_data_stock = pre_fmp.normalized_stock_data
+
+            
 
     def visualize_dividenden_data(self, stock_symbol:str):
         import matplotlib.pyplot as plt
@@ -51,12 +51,11 @@ class visualize_fmp():
 
 class visualize_alphavantage():
 
-    def __init__(self) -> None:
+    def __init__(self, pre_alpha: pre.preproccessing_alphavantage_data) -> None:
         
-        pre_alpha = pre.preproccessing_alphavantage_data()
+        self.preproccessed_data = pre_alpha.normalized_data
 
-        self.preproccessed_data = pre_alpha.normalize_data()
-
+    
     def visualize_stock_data(self, stock_symbol:str):
         
 

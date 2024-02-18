@@ -37,11 +37,12 @@ class preproccessing_ticker_symbol():
     
 
 class preproccessing_alphavantage_data():
-    def __init__(self) -> None:
-        data = ""
-        with open('../data/stock_infos/result.json') as json_file:
-            data = json_file.read()
-        self.data_as_json = json.loads(data)
+    def __init__(self, data_as_dict: dict) -> None:
+        
+        
+        self.data_as_json = data_as_dict
+
+        self.normalized_data = self.normalize_data()
 
     def normalize_data(self):
 
@@ -84,18 +85,14 @@ class preproccessing_alphavantage_data():
         return transposed_df
 
 
-
-
 class preproccessing_fmp_data():
     
-    def __init__(self) -> None:
-        self.raw_data = []
-        self.raw_data_stock = []
-        with open('../data/stock_infos/raw_data_fmp.json', "r") as json_file:
-            self.raw_data = json.load(json_file)
+    def __init__(self, raw_data_dividend: dict, raw_data_stock: dict) -> None:
+        self.raw_data = raw_data_dividend
+        self.raw_data_stock = raw_data_stock
 
-        with open('../data/stock_infos/raw_data_fmp_stock_value.json', "r") as json_file:
-            self.raw_data_stock = json.load(json_file)
+        self.normalized_data = self.normalize_dividenden_data()
+        self.normalized_stock_data = self.normalize_stock_data()
 
     def normalize_stock_data(self):
 
@@ -261,6 +258,19 @@ class preproccessing_fmp_data():
         print(result_df.columns)
         return result_df
     
-    def pivot_dividenden_data(self, df : pd.DataFrame):
-        df_pivot = df.pivot_table(index=['date', 'variable'], columns='symbol', values='value', aggfunc='first').reset_index()
+    def pivot_dividenden_data(self, df_normalized : pd.DataFrame):
+        df_pivot = df_normalized.pivot_table(index=['date', 'variable'], columns='symbol', values='value', aggfunc='first').reset_index()
         return df_pivot
+    
+
+
+
+class preproccessing_combined_data():
+    def __init__(self, pre_fmp: preproccessing_fmp_data, pre_alpha: preproccessing_alphavantage_data) -> None:
+        self.pre_fmp = pre_fmp
+        self.pre_alpha = pre_alpha
+    
+    def combine_data(self):
+        # combine data
+        combined_data = self.pre_fmp.normalize_dividenden_data().merge(self.pre_alpha.normalize_data(), how="left", on="date")
+        return combined_data
