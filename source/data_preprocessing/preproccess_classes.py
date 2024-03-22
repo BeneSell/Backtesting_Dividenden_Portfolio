@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+from datetime import datetime, timedelta
 
 class preproccessing_ticker_symbol():
 
@@ -37,24 +38,27 @@ class preproccessing_ticker_symbol():
     
 
 class preproccessing_alphavantage_data():
-    def __init__(self, data_as_dict: dict) -> None:
+    def __init__(self, data_from_csv: list) -> None:
         
+
+        self.normalized_data = self.normalize_data(data_from_csv)
+
+    def normalize_data(self, data_from_csv: list):
+
         
-        self.data_as_json = data_as_dict
-
-        self.normalized_data = self.normalize_data()
-
-    def normalize_data(self):
 
         # normalize data
-        normalized_json_df = pd.json_normalize(self.data_as_json)
-        print(normalized_json_df.count().iloc[0])
+        normalized_json_df = pd.json_normalize(data_from_csv)
+        
         
         normalized_json_df = normalized_json_df.drop_duplicates("Meta Data.2. Symbol")
         normalized_json_df = normalized_json_df.dropna(axis=0,subset=["Meta Data.2. Symbol"])
 
+        
 
         normalized_json_df = normalized_json_df.set_index("Meta Data.2. Symbol")
+
+        
 
         transposed_df =  normalized_json_df.transpose()
         transposed_df = transposed_df.reset_index()
@@ -87,14 +91,13 @@ class preproccessing_alphavantage_data():
 
 class preproccessing_fmp_data():
     
-    def __init__(self, raw_data_dividend: dict, raw_data_stock: dict) -> None:
-        self.raw_data = raw_data_dividend
-        self.raw_data_stock = raw_data_stock
+    def __init__(self, raw_data_dividend: list, raw_data_stock: list) -> None:
+        
 
-        self.normalized_data = self.normalize_dividenden_data()
-        self.normalized_stock_data = self.normalize_stock_data()
+        self.normalized_data_dividend = self.normalize_dividenden_data(raw_data_dividend)
+        self.normalized_stock_data = self.normalize_stock_data(raw_data_stock)
 
-    def normalize_stock_data(self):
+    def normalize_stock_data(self, raw_data_stock: list):
 
         # same as above but for stock value
 
@@ -106,16 +109,9 @@ class preproccessing_fmp_data():
         # df_stock["date"] = pd.to_datetime(df_stock["date"]).dt.to_period('M')
     
         # df_stock
-        from datetime import datetime, timedelta
 
-        # Starting date (January 1, 1970)
-        start_date = datetime(1970, 1, 1)
 
-        # Number of months to generate
-        num_months = (datetime.now() - start_date).days // 30
 
-        # Generate datetime objects for each month
-        months = [start_date + timedelta(days=30 * i) for i in range(num_months)]
 
 
         result_df = pd.DataFrame()
@@ -125,7 +121,7 @@ class preproccessing_fmp_data():
 
 
 
-        for i, x in enumerate(self.raw_data_stock):
+        for i, x in enumerate(raw_data_stock):
             
             try:
             # unpivot json
@@ -173,46 +169,18 @@ class preproccessing_fmp_data():
         # result_df.to_csv("./data/stock_infos/stock_values_per_symbol.csv", index=False)
 
         return result_df
+    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        pass
-
-    def normalize_dividenden_data(self):
+    def normalize_dividenden_data(self, raw_data_dividend: list):
 
         result_df = pd.DataFrame()
-
-        from datetime import datetime, timedelta
-
-        # Starting date (January 1, 1970)
-        start_date = datetime(1970, 1, 1)
-
-        # Number of months to generate
-        num_months = (datetime.now() - start_date).days // 30
-
-        # Generate datetime objects for each month
-        months = [start_date + timedelta(days=30 * i) for i in range(num_months)]
 
 
         # result_df["date"] = pd.to_datetime(months).to_period('M')
 
 
-
-        for i, x in enumerate(self.raw_data):
+        
+        for i, x in enumerate(raw_data_dividend):
             
             try:
 
@@ -262,15 +230,33 @@ class preproccessing_fmp_data():
         df_pivot = df_normalized.pivot_table(index=['date', 'variable'], columns='symbol', values='value', aggfunc='first').reset_index()
         return df_pivot
     
-
+    def pivot_stock_data(self, df_normalized : pd.DataFrame):
+        df_pivot = df_normalized.pivot_table(index=['date', 'variable'], columns='symbol', values='value', aggfunc='first').reset_index()
+        return df_pivot
 
 
 class preproccessing_combined_data():
     def __init__(self, pre_fmp: preproccessing_fmp_data, pre_alpha: preproccessing_alphavantage_data) -> None:
         self.pre_fmp = pre_fmp
         self.pre_alpha = pre_alpha
-    
-    def combine_data(self):
-        # combine data
-        combined_data = self.pre_fmp.normalize_dividenden_data().merge(self.pre_alpha.normalize_data(), how="left", on="date")
-        return combined_data
+        self.combined_data = self.basic_combined_data()
+
+    def basic_combined_data(self):
+        
+        fmp_div_df = self.pre_fmp.pivot_dividenden_data(self.pre_fmp.normalized_data_dividend).rename(columns={"variable":"information"})
+        fmp_stock_df = self.pre_fmp.pivot_stock_data(self.pre_fmp.normalized_stock_data).rename(columns={"variable":"information"})
+        
+        alpha_df = self.pre_alpha.normalized_data
+        alpha_df["date"] = alpha_df["date"].dt.to_period('M')
+
+        alpha_div = alpha_df[alpha_df["information"].str.contains("dividend")]
+        fmp_div = fmp_div_df[fmp_div_df["information"].str.contains("dividend")]
+
+        alpha_stock = alpha_df[alpha_df["information"].str.contains("adjusted close")]
+        fmp_stock = fmp_stock_df[fmp_stock_df["information"].str.contains("close")]
+
+        # combine alpha_div, fmp_div and alpha_stock, fmp_stock concat 
+
+        df_concat = pd.concat([alpha_div, fmp_div, alpha_stock, fmp_stock], axis=0)
+
+        return df_concat

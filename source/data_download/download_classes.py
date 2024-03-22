@@ -122,6 +122,24 @@ class download_fmp():
             time.sleep(1)
 
 
+    def download_fmp_dividend_from_local(self):
+        # read from file
+
+        result_list = self.get_company_ticker_symbols_by_choice()
+
+        data_result_list = []
+
+        for index, x in enumerate(result_list):
+            # if in local folder there is a file called StockDividend_x.json then read it
+            if os.path.isfile(f'../data/stock_infos/from_prof/StockDividend_{x}.json'):
+                with open(f'../data/stock_infos/from_prof/StockDividend_{x}.json') as json_file:
+                    data = json.load(json_file)
+                    data_result_list.append(data)
+        
+        with open('../data/stock_infos/raw_data_fmp_from_local_div.json', 'w') as outfile:
+                json.dump(data_result_list, outfile)
+
+        return data_result_list
 
 class download_alphavantage_data():
 

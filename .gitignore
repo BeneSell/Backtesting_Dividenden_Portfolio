@@ -5,3 +5,6 @@ __pychace__
 
 *.code
 *.pyc
+config.json
+/source/media
+support.ipynb

@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-import preproccess_classes as pre
+import data_preprocessing.preproccess_classes as pre
 import matplotlib.pyplot as plt
 
 class visualize_fmp():
@@ -122,4 +122,28 @@ class visualize_alphavantage():
     
         pass
 
-    
+class visualize_combined_data():
+     
+    def __init__(self, combined_data: pd.DataFrame) -> None:
+        self.combined_data = combined_data
+          
+
+    def fmp_vs_alpha(self):
+
+
+        df_adbe = self.combined_data[["T","information", "date"]]
+        # df_adbe["date"] = pd.dt.to_datetime(df_adbe["date"])
+
+        df_adbe_fmp_stock = df_adbe[df_adbe["information"] == "close"]
+        df_adbe_alpha_stock = df_adbe[df_adbe["information"].str.contains("adjusted close")]
+        
+        df_adbe_fmp_stock = df_adbe_fmp_stock.set_index("date")
+        df_adbe_alpha_stock = df_adbe_alpha_stock.set_index("date")
+
+        # plot only fmp
+        df_adbe_fmp_stock.plot()
+        df_adbe_alpha_stock.plot()
+        
+        
+        plt.show()
+        pass
