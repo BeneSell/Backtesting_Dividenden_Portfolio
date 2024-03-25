@@ -60,7 +60,7 @@ class single_stock_check():
                                   & (df_combined["date"].dt.to_timestamp() <= x + datetime.timedelta(days=365 * look_forward_years))][[symbol, "date", "information"]]
         
         # print duplicates on date 
-        print(df_temp[df_temp.duplicated(subset=["date"], keep=False)])
+        # print(df_temp[df_temp.duplicated(subset=["date"], keep=False)])
 
         # remove duplicates on date
         df_temp = df_temp.drop_duplicates(subset=["date", "information"], keep="first")
@@ -87,17 +87,19 @@ class single_stock_check():
         # get dividends
         dividends = self.get_dividends(df_combined, start_date, look_foward_years, symbol)
 
-        output = []
-        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["close"].count(), dividends["close"].count(), start_stock_price, dividends["dividend amount"], dividends["close"], output)
+        print(dividends)
 
-        print(pd.DataFrame(output))
+        output = []
+        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["adjusted close"].count(), dividends["adjusted close"].count(), start_stock_price, dividends["dividend amount"], dividends["adjusted close"], output)
+
+        
         # money_invested *(end_money/start_money)
 
         # calculate money earned until next dividend
 
         # add those money to the stock price
         # repeat until the end of the check
-        
+        return pd.DataFrame(output)
         pass
 
 # filtering data to get symbols wich have consistent increased there dividends
@@ -178,23 +180,117 @@ class single_stock_check():
         
         # print(f"interest after year {(s_months+1) - r_months}:{r_anual_interest_rate * r_money : 0.2f},\t total money:{r_money * (1 + r_anual_interest_rate): 0.2f}")
         
+        print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
+
         # adding the interest to the money
         r_money = r_money + (r_money * r_anual_interest_rate)
 
-        print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
+        
         print("new money: "+str(r_money))
         print("")
 
         #TODO change the output list according to the new values in the print statement
         output.append({
-            "money": r_money,
-            "anual_intrest": r_anual_interest_rate,
-            "growth_from_stock": 1 + s_anual_stock_price_change_list.iloc[s_months - r_months]/last_stock_price,
-            "money_from_growth": r_money * (s_anual_stock_price_change_list.iloc[s_months - r_months]/last_stock_price),
-            "dividend": 1 + r_anual_interest_rate,
-            "money_from_dividend": r_money * (r_anual_interest_rate)
+            "r-anual_interest_rate": str(r_anual_interest_rate),
+            "money": str(r_money),
+            "growth_from_stock": str( r_anual_stock_price_change/last_stock_price),
+            "last stock price": last_stock_price,
+            "current stock price": r_anual_stock_price_change,
+            "money from growth" : str(r_money * (r_anual_stock_price_change/last_stock_price)),
+            "dividend": str(1 + r_anual_interest_rate),
+            "dividend_money": str(r_money * (r_anual_interest_rate)),
+            "date": s_months - r_months
         })
 
         if r_months == 1:
             return r_money
         return self.compound_interest_calc_recursive_with_extras(r_money, r_months-1, s_months,s_first_stock_price, s_anual_interest_rate_list, s_anual_stock_price_change_list, output)
+    
+    def calculate_dividend_yield(self, dividends_of_stock: pd.DataFrame):
+        # print("mean of dividend yield: " + str(dividends_of_stock["dividend amount"].mean()))
+        return dividends_of_stock["dividend amount"].mean()
+        pass
+    
+    def calculate_dividend_growth(self, dividends_of_stock):
+
+        dividend_growth = dividends_of_stock["dividend amount"].pct_change()
+        # print(dividend_growth)
+        # print("mean of dividend growth: "+str(dividend_growth.mean()))
+        return dividend_growth.mean()
+        pass
+
+    def calculate_dividend_stability(self, dividends_of_stock):
+        # Calculate the interval between consecutive dividend dates
+        dividend_intervals = dividends_of_stock["date"].dt.to_timestamp().diff().dt.days
+        # print("varianz of stability: " + str(dividend_intervals.var()))
+
+        return dividend_intervals.var()
+    
+
+class bruteforce_checks():
+    def __init__(self, combined_data) -> None:
+        self.single_stock_checker = single_stock_check()
+        self.combined_data = combined_data
+        pass
+
+    def check_all_stocks(self):
+        result = []
+        for x in self.combined_data.columns:
+            print(x)
+            try:
+                temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, pd.to_datetime("2000-03-01"), 5, x)
+            except Exception as e:
+                print("no dividends found")
+                print(e)
+                continue
+
+            temp_growth = self.single_stock_checker.calculate_dividend_growth(temp_dividends)
+            temp_stability = self.single_stock_checker.calculate_dividend_stability(temp_dividends)
+            temp_yield = self.single_stock_checker.calculate_dividend_yield(temp_dividends)
+            
+            result.append({
+                "symbol": x,
+                "growth": temp_growth,
+                "stability": temp_stability,
+                "yield": temp_yield
+            })
+        	
+        result_df = pd.DataFrame(result)
+        
+        # create a all column where the positions are added together not the values
+        result_df["rank_growth"] = result_df["growth"].rank(ascending=False) 
+        result_df["rank_stability"] = result_df["stability"].rank(ascending=False) 
+        result_df["rank_yield"] = result_df["yield"].rank(ascending=False)
+        result_df["all"] = result_df["rank_growth"] + result_df["rank_stability"] + result_df["rank_yield"]
+
+        print(result_df.sort_values(by="yield", ascending=False).head(5))
+        print(result_df.sort_values(by="growth", ascending=False).head(5))
+        print(result_df.sort_values(by="stability", ascending=False).head(5))
+        print(result_df.sort_values(by="all", ascending=True).head(5))
+        return result_df
+    
+    def test_a_portfolio(self, list_of_stocks: list):
+        result = []
+        for x in list_of_stocks:
+
+            try:
+                temp = self.single_stock_checker.check_money_made_by_div(pd.to_datetime("2015-12-31"), 15, x, self.combined_data, 100)
+            except Exception as e:
+                print("no dividends found")
+                print(e)
+                continue
+            
+            print(temp)
+            if(temp.empty):
+                continue
+            temp_money_made = temp["money"].iloc[-1]
+            result.append({
+                "symbol": x,
+                "money_made": temp_money_made
+            })
+
+        print(pd.DataFrame(result))
+        return pd.DataFrame(result)
+
+
+        pass

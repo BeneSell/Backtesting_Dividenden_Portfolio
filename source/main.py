@@ -60,7 +60,18 @@ vis_combined.fmp_vs_alpha("ADBE")
 # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
 # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
 # try: 
-bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2011-12-31"), look_foward_years=15, symbol="AAPL", df_combined=pre_combine.combined_data, money_invested=100)
+bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2011-12-31"), look_foward_years=15, symbol="C", df_combined=pre_combine.combined_data, money_invested=100)
+
+
+apple_dividends = bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
+
+stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
+
+bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True)["symbol"][0:30].to_list())
+
+# bl.single_stock_check().calculate_dividend_growth(apple_dividends)
+# bl.single_stock_check().calculate_dividend_stability(apple_dividends)
+# bl.single_stock_check().calculate_dividend_yield(apple_dividends)
 # except Exception as e:
 #     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2001-12-31') + datetime.timedelta(days=365 * 4)}")
 #     print("")
