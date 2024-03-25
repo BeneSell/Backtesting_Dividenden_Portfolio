@@ -6,7 +6,7 @@ import data_business_logic.bussiness_logic_classes as bl
 import pandas as pd
 import data_download.download_classes as dl
 import json
-
+import datetime
 
 # down_alpha = dl.download_alphavantage_data()
 
@@ -31,8 +31,8 @@ with open('../data/stock_infos/result.json') as json_file:
     raw_data_alpha = json.loads(data)
 
 
-pre_fmp = pre.preproccessing_fmp_data(raw_data_fmp_dividends[:6], raw_data_fmp_stock_value[:6])
-pre_alpha = pre.preproccessing_alphavantage_data(raw_data_alpha[:6])
+pre_fmp = pre.preproccessing_fmp_data(raw_data_fmp_dividends, raw_data_fmp_stock_value)
+pre_alpha = pre.preproccessing_alphavantage_data(raw_data_alpha)
 
 # good_format_df = pre_fmp.pivot_dividenden_data(pre_fmp.normalized_data_dividend)
 # print(good_format_df[good_format_df["variable"].str.contains("adjDividend")])
@@ -40,16 +40,34 @@ pre_alpha = pre.preproccessing_alphavantage_data(raw_data_alpha[:6])
 pre_combine = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
 
 
-# vis_combined = vis.visualize_combined_data(pre_combine.combined_data)
-# vis_combined.fmp_vs_alpha()
+vis_alpha = vis.visualize_alphavantage(pre_alpha)
+vis_alpha.visualize_stock_data(["ADBE"])
 
-bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
+vis_fmp = vis.visualize_fmp(pre_fmp)
+vis_fmp.visualize_dividenden_data("ADBE")
+
+
+vis_alpha.visualize_dividenden_data(["AAPL"])
+
+
+
+
+
+vis_combined = vis.visualize_combined_data(pre_combine.combined_data)
+vis_combined.fmp_vs_alpha("ADBE")
+
+
+# bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
 # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
-
-
+# try: 
+bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2011-12-31"), look_foward_years=15, symbol="AAPL", df_combined=pre_combine.combined_data, money_invested=100)
+# except Exception as e:
+#     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2001-12-31') + datetime.timedelta(days=365 * 4)}")
+#     print("")
+#     print(e)
 # bl.single_stock_check().check_for_min_dividend(pre_combine.combined_data, 0.05, pd.to_datetime("2020-01-01"), 15)
 
-bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2005-03-01"), 1, "AAPL")
+# bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2005-03-01"), 1, "AAPL")
 
 
 # print(pd.Period("03.2010"))
@@ -60,24 +78,7 @@ bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime(
 # print(pre_alpha.normalized_data)
 
 
-
-
-# preproccessing_combined = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
-# print(preproccessing_combined.combine_data().head())
-
-
-
 # down_alpha.download_alphavantage_stock_and_dividend_data()
 
 
 
-# vis_alpha.visualize_dividenden_data("AAPL")
-
-
-
-# vis_alpha = vis.visualize_alphavantage(pre_alpha)
-# vis_fmp = vis.visualize_fmp(pre_fmp)
-# 
-# vis_fmp.visualize_dividenden_data("AAPL")
-# 
-# vis_alpha.visualize_stock_data("AAPL")

@@ -51,28 +51,50 @@ class single_stock_check():
 
 # check_for_min_dividend(df[df["symbol"] == "MSFT"], 0.05, datetime.date(2020, 1, 1), 15)
 
-    def get_dividends(self, df_combined: pd.DataFrame,x: datetime.date,look_back_years, symbol: str):
+    def get_dividends(self, df_combined: pd.DataFrame, x: datetime.date, look_forward_years, symbol: str):
+        # TODO check for erros for example no data available
         
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
         df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|close", regex=True)) 
-                                  & (df_combined["date"].dt.to_timestamp() <= x) 
-                                  & (df_combined["date"].dt.to_timestamp() >= x - datetime.timedelta(days=365 * look_back_years))][["ADBE", "date", "information"]]
+                                  & (df_combined["date"].dt.to_timestamp() >= x) 
+                                  & (df_combined["date"].dt.to_timestamp() <= x + datetime.timedelta(days=365 * look_forward_years))][[symbol, "date", "information"]]
         
-        df_temp = df_temp.pivot(index="date", columns="information", values="ADBE").reset_index()
+        # print duplicates on date 
+        print(df_temp[df_temp.duplicated(subset=["date"], keep=False)])
+
+        # remove duplicates on date
+        df_temp = df_temp.drop_duplicates(subset=["date", "information"], keep="first")
+
         
+        df_temp = df_temp.pivot(index="date", columns="information", values=symbol).reset_index()
         
         
         # strip column names whitespace 
         df_temp.columns = df_temp.columns.str.strip()
-        
+          
         # print(df_temp[df_temp["dividend amount"] > 0.0])
 
         return df_temp[df_temp["dividend amount"] > 0.0]
 
-    def check_money_made_by_div(self):
-        # get dividends
+    def check_money_made_by_div(self, start_date: datetime.datetime, look_foward_years: int, symbol: str, df_combined: pd.DataFrame, money_invested: int = 1):
+        # check_moeny_made_by_stock 
+
         # get stock price at the beginning of the check
+        start_stock_price = self.invest_on_date(start_date, symbol, df_combined).iloc[0]
+        print(start_stock_price)
+
+        
+        # get dividends
+        dividends = self.get_dividends(df_combined, start_date, look_foward_years, symbol)
+
+        output = []
+        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["close"].count(), dividends["close"].count(), start_stock_price, dividends["dividend amount"], dividends["close"], output)
+
+        print(pd.DataFrame(output))
+        # money_invested *(end_money/start_money)
+
         # calculate money earned until next dividend
+
         # add those money to the stock price
         # repeat until the end of the check
         
@@ -82,16 +104,16 @@ class single_stock_check():
 
 
 # show the stock price of a symbol on a specific date
-    def check_for_increased_stock(self, df_combined: pd.DataFrame, money_invested: int = 1, start_date: datetime.datetime = datetime.datetime(2012, 12, 31), look_forward_years: int = 4):
+    def check_for_increased_stock(self, df_combined: pd.DataFrame,symbol="ADBE", money_invested: int = 1, start_date: datetime.datetime = datetime.datetime(2012, 12, 31), look_forward_years: int = 4):
         # start_date = datetime.datetime.fromisoformat("2012-12-31")
         end_date = start_date + datetime.timedelta(days=365 * look_forward_years)
 
-        start_money = self.invest_on_date(start_date, "ADBE", df_combined).iloc[0]
-        end_money = self.invest_on_date(end_date, "ADBE", df_combined).iloc[0]
+        start_money = self.invest_on_date(start_date, symbol, df_combined).iloc[0]
+        end_money = self.invest_on_date(end_date, symbol, df_combined).iloc[0]
 
 
         print(f"invested money:\t\t {money_invested}$")
-        print("stock:\t\t\t ADBE")
+        print(f"stock:\t\t\t {symbol}")
         print(f"start date:\t\t{start_date:%d.%m.%Y}")
         print(f"stock start:\t\t{start_money : .2f}")
         print(f"end date:\t\t{end_date:%d.%m.%Y}")
@@ -113,8 +135,66 @@ class single_stock_check():
 
         """
         monthly = s_anual_interest_rate / 12
-        print(f"interest after month {(s_months+1) - r_months}:{monthly * r_money : 0.2f},\t total money:{r_money * (1 + monthly): 0.2f}")
-        r_money = r_money * (1 + monthly)
+        print(f"interest after month {(s_months+1) - r_months}:{s_anual_interest_rate * r_money : 0.2f},\t total money:{r_money * (1 + s_anual_interest_rate): 0.2f}")
+        r_money = r_money * (1 + s_anual_interest_rate)
         if r_months == 1:
             return r_money
         return self.compound_interest_calc_recursive(r_money, r_months-1, s_months)
+    
+    # TODO rename this function
+    def compound_interest_calc_recursive_with_extras(self, r_money, r_months, s_months, s_first_stock_price, s_anual_interest_rate_list: pd.Series, s_anual_stock_price_change_list: pd.Series, output: list = []):
+        """
+        Calculate compound interest with a recursive function but a lookup table for the anual_interest_rate
+        r_ = recursive
+        s_ = static 
+
+        """
+        r_anual_interest_rate = s_anual_interest_rate_list.iloc[s_months - r_months] * 0.01
+
+        r_anual_stock_price_change = s_anual_stock_price_change_list.iloc[s_months - r_months]
+
+        if(s_months - r_months == 0):
+            # first entry
+            last_stock_price = s_first_stock_price
+        else:
+            # every other entry
+            last_stock_price = s_anual_stock_price_change_list.iloc[s_months - r_months - 1]
+            pass
+        
+        print("r-anual interest rate:" + str(r_anual_interest_rate))
+        print("money:" + str(r_money))
+        print("growth from stock: "+ str( r_anual_stock_price_change/last_stock_price))
+        print(f"last stock price: {last_stock_price}")
+        print(f"current stock price: {r_anual_stock_price_change}")
+        print("money from growth: "+ str(r_money * (r_anual_stock_price_change/last_stock_price)))
+        print("dividend: "+ str(1 + r_anual_interest_rate))
+        print("dividend money: "+ str(r_money * (r_anual_interest_rate)))
+        
+        # calculate the anual interest rate
+        
+        
+        # adding the growth of the stock to the money
+        r_money = r_money * (r_anual_stock_price_change/last_stock_price)
+        
+        # print(f"interest after year {(s_months+1) - r_months}:{r_anual_interest_rate * r_money : 0.2f},\t total money:{r_money * (1 + r_anual_interest_rate): 0.2f}")
+        
+        # adding the interest to the money
+        r_money = r_money + (r_money * r_anual_interest_rate)
+
+        print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
+        print("new money: "+str(r_money))
+        print("")
+
+        #TODO change the output list according to the new values in the print statement
+        output.append({
+            "money": r_money,
+            "anual_intrest": r_anual_interest_rate,
+            "growth_from_stock": 1 + s_anual_stock_price_change_list.iloc[s_months - r_months]/last_stock_price,
+            "money_from_growth": r_money * (s_anual_stock_price_change_list.iloc[s_months - r_months]/last_stock_price),
+            "dividend": 1 + r_anual_interest_rate,
+            "money_from_dividend": r_money * (r_anual_interest_rate)
+        })
+
+        if r_months == 1:
+            return r_money
+        return self.compound_interest_calc_recursive_with_extras(r_money, r_months-1, s_months,s_first_stock_price, s_anual_interest_rate_list, s_anual_stock_price_change_list, output)

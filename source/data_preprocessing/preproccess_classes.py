@@ -223,7 +223,7 @@ class preproccessing_fmp_data():
 
         # result_df[(result_df["variable"] == "adjDividend") & (result_df["symbol"] == "MSFT") ]
         # result_df.to_csv("../data/stock_infos/dividend_values_per_symbol.csv", index=False)
-        print(result_df.columns)
+        
         return result_df
     
     def pivot_dividenden_data(self, df_normalized : pd.DataFrame):

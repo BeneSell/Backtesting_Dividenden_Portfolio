@@ -7,7 +7,7 @@ class visualize_fmp():
 
     def __init__(self, pre_fmp: pre.preproccessing_fmp_data) -> None:
     
-            self.preproccessed_data = pre_fmp.normalized_data
+            self.preproccessed_data = pre_fmp.normalized_data_dividend
             self.preproccessed_data_stock = pre_fmp.normalized_stock_data
 
             
@@ -18,7 +18,7 @@ class visualize_fmp():
 
         print(self.preproccessed_data.columns)
 
-        df_to_plot = self.preproccessed_data[(self.preproccessed_data["variable"] == "adjDividend") & (self.preproccessed_data["symbol"] == "AAPL") ][["date", "value"]]
+        df_to_plot = self.preproccessed_data[(self.preproccessed_data["variable"] == "adjDividend") & (self.preproccessed_data["symbol"] == stock_symbol) ][["date", "value"]]
         # df_to_plot["date"] = pd.to_datetime(df_to_plot["date"])
         
         df_to_plot = df_to_plot.set_index("date")
@@ -38,7 +38,7 @@ class visualize_fmp():
 
 
         df_to_plot = self.preproccessed_data_stock[(self.preproccessed_data_stock["variable"] == "low") 
-                                             & (self.preproccessed_data_stock["symbol"] == "MSFT") ][["date", "value"]]
+                                             & (self.preproccessed_data_stock["symbol"] == stock_symbol) ][["date", "value"]]
 
         # df_to_plot["date"] = pd.to_datetime(df_to_plot["date"])
         df_to_plot = df_to_plot.set_index("date")
@@ -56,7 +56,7 @@ class visualize_alphavantage():
         self.preproccessed_data = pre_alpha.normalized_data
 
     
-    def visualize_stock_data(self, stock_symbol:str):
+    def visualize_stock_data(self, stock_symbol_list:list = ["AAPL","ADBE", "MSFT"]):
         
 
         # only take values where "closed" in column information stands
@@ -71,23 +71,30 @@ class visualize_alphavantage():
         # 2020-01-01 | 2020-01-02 --|transferd to|--> 2020-01-01 | 2020-01-01
         # ----------------------^-------------------------------------------^
 
-        df_with_selected_information = df_with_selected_information.groupby(pd.Grouper(freq='M', key="date")).first().reset_index()
+        df_with_selected_information = df_with_selected_information.groupby(by="date").first().reset_index()
 
         # print(df_with_selected_information.columns)
+        
+        # careful attempts with .append() will not work as expected
+        stock_symbol_list_with_date = stock_symbol_list + ["date"]
 
-        df_to_plot = df_with_selected_information[["AAPL","ADBE", "MSFT", "date"]]
+        print(df_with_selected_information)
+        print(stock_symbol_list_with_date)
+
+        # .copy() is only to remove the warning from pandas
+        df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
         # df_to_plot = df_to_plot[df_to_plot["date"] > datetime.datetime.fromisoformat("2011-12-31T00:00:00")]
         # df_to_plot = df_to_plot[df_to_plot["date"] < datetime.datetime.fromisoformat("2022-12-31T00:00:00")]
 
         print(df_to_plot.columns)
 
-
+        df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
         df_to_plot.set_index("date", inplace=True)
         # make a line plot
         # make the line plot wider
         plt.figure(figsize=(10,5))
         # title
-        plt.title("Apple Stock Price")
+        plt.title(f"{' '.join(stock_symbol_list)} Stock Price")
         # ylabel
         plt.ylabel("Price")
         # xlabel
@@ -105,17 +112,22 @@ class visualize_alphavantage():
         plt.plot(df_to_plot)
         plt.show()
     
-    def visualize_dividenden_data(self, stock_symbol:str):
+    def visualize_dividenden_data(self, stock_symbol_list:list = ["COST","AAPL", "T"]):
 
         df_with_selected_information = self.preproccessed_data[self.preproccessed_data["information"].str.strip() == "dividend amount"]
 
-        df_with_selected_information = df_with_selected_information.groupby(pd.Grouper(freq='Y', key="date")).mean(numeric_only=True).reset_index()
+        df_with_selected_information = df_with_selected_information.groupby(by="date").mean(numeric_only=True).reset_index()
 
-        df_to_plot = df_with_selected_information[["COST","AAPL", "T", "date"]]
+        stock_symbol_list_with_date = stock_symbol_list + ["date"]
+        
+        # .copy() is only to remove the warning from pandas
+        df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
         # df_to_plot = df_to_plot[df_to_plot["date"] > datetime.datetime.fromisoformat("2011-12-31")]
         # df_to_plot = df_to_plot[df_to_plot["date"] < datetime.datetime.fromisoformat("2016-12-31")]
-
-        df_to_plot = df_to_plot.set_index("date")[["COST","AAPL", "T"]]
+        
+        df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
+        print(stock_symbol_list)
+        df_to_plot = df_to_plot.set_index("date")[stock_symbol_list]
         df_to_plot.plot()
 
         plt.show()
@@ -128,10 +140,10 @@ class visualize_combined_data():
         self.combined_data = combined_data
           
 
-    def fmp_vs_alpha(self):
+    def fmp_vs_alpha(self, stock_symbol:str = "ADBE"):
 
 
-        df_adbe = self.combined_data[["T","information", "date"]]
+        df_adbe = self.combined_data[[stock_symbol,"information", "date"]]
         # df_adbe["date"] = pd.dt.to_datetime(df_adbe["date"])
 
         df_adbe_fmp_stock = df_adbe[df_adbe["information"] == "close"]
