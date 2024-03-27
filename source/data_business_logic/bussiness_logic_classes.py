@@ -17,9 +17,6 @@ class single_stock_check():
         # get the column with the stock_name
         return row[stock_name]
 
-    def check_single_stock(self, stock_symbol:str):
-        pass
-
     # filtering data to get symbols wich have dividend over 5
 
     def check_for_min_dividend(self, df_combined: pd.DataFrame, min_dividend: float = 0.05, x: datetime.date = datetime.date(2020, 1, 1), look_back_years: int = 5):
@@ -52,12 +49,12 @@ class single_stock_check():
 # check_for_min_dividend(df[df["symbol"] == "MSFT"], 0.05, datetime.date(2020, 1, 1), 15)
 
     def get_dividends(self, df_combined: pd.DataFrame, x: datetime.date, look_forward_years, symbol: str):
-        # TODO check for erros for example no data available
+        # TODO check for errors for example no data available
         
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
         df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|close", regex=True)) 
-                                  & (df_combined["date"].dt.to_timestamp() >= x) 
-                                  & (df_combined["date"].dt.to_timestamp() <= x + datetime.timedelta(days=365 * look_forward_years))][[symbol, "date", "information"]]
+                                  & (df_combined["date"].dt.to_timestamp() >= pd.to_datetime(x)) 
+                                  & (df_combined["date"].dt.to_timestamp() <= pd.to_datetime(x + datetime.timedelta(days=365 * look_forward_years)))][[symbol, "date", "information"]]
         
         # print duplicates on date 
         # print(df_temp[df_temp.duplicated(subset=["date"], keep=False)])
@@ -163,14 +160,16 @@ class single_stock_check():
             last_stock_price = s_anual_stock_price_change_list.iloc[s_months - r_months - 1]
             pass
         
-        print("r-anual interest rate:" + str(r_anual_interest_rate))
-        print("money:" + str(r_money))
-        print("growth from stock: "+ str( r_anual_stock_price_change/last_stock_price))
-        print(f"last stock price: {last_stock_price}")
-        print(f"current stock price: {r_anual_stock_price_change}")
-        print("money from growth: "+ str(r_money * (r_anual_stock_price_change/last_stock_price)))
-        print("dividend: "+ str(1 + r_anual_interest_rate))
-        print("dividend money: "+ str(r_money * (r_anual_interest_rate)))
+
+        # a lot of print statements for debugging
+        # print("r-anual interest rate:" + str(r_anual_interest_rate))
+        # print("money:" + str(r_money))
+        # print("growth from stock: "+ str( r_anual_stock_price_change/last_stock_price))
+        # print(f"last stock price: {last_stock_price}")
+        # print(f"current stock price: {r_anual_stock_price_change}")
+        # print("money from growth: "+ str(r_money * (r_anual_stock_price_change/last_stock_price)))
+        # print("dividend: "+ str(1 + r_anual_interest_rate))
+        # print("dividend money: "+ str(r_money * (r_anual_interest_rate)))
         
         # calculate the anual interest rate
         
@@ -180,14 +179,14 @@ class single_stock_check():
         
         # print(f"interest after year {(s_months+1) - r_months}:{r_anual_interest_rate * r_money : 0.2f},\t total money:{r_money * (1 + r_anual_interest_rate): 0.2f}")
         
-        print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
+        # print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
 
         # adding the interest to the money
         r_money = r_money + (r_money * r_anual_interest_rate)
 
         
-        print("new money: "+str(r_money))
-        print("")
+        # print("new money: "+str(r_money))
+        # print("")
 
         #TODO change the output list according to the new values in the print statement
         output.append({
@@ -227,20 +226,22 @@ class single_stock_check():
         return dividend_intervals.var()
     
 
+
+
 class bruteforce_checks():
     def __init__(self, combined_data) -> None:
         self.single_stock_checker = single_stock_check()
         self.combined_data = combined_data
         pass
 
-    def check_all_stocks(self):
+    def check_all_stocks(self, start_date: datetime.datetime = datetime.date(2015, 12, 31)):
         result = []
         for x in self.combined_data.columns:
-            print(x)
+            # print(x)
             try:
-                temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, pd.to_datetime("2000-03-01"), 5, x)
+                temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, start_date, 5, x)
             except Exception as e:
-                print("no dividends found")
+                print("no dividends found all stocks")
                 print(e)
                 continue
 
@@ -257,26 +258,26 @@ class bruteforce_checks():
         	
         result_df = pd.DataFrame(result)
         
-        # create a all column where the positions are added together not the values
+        
         result_df["rank_growth"] = result_df["growth"].rank(ascending=False) 
         result_df["rank_stability"] = result_df["stability"].rank(ascending=False) 
         result_df["rank_yield"] = result_df["yield"].rank(ascending=False)
         result_df["all"] = result_df["rank_growth"] + result_df["rank_stability"] + result_df["rank_yield"]
 
-        print(result_df.sort_values(by="yield", ascending=False).head(5))
-        print(result_df.sort_values(by="growth", ascending=False).head(5))
-        print(result_df.sort_values(by="stability", ascending=False).head(5))
-        print(result_df.sort_values(by="all", ascending=True).head(5))
+        # print(result_df.sort_values(by="yield", ascending=False).head(5))
+        # print(result_df.sort_values(by="growth", ascending=False).head(5))
+        # print(result_df.sort_values(by="stability", ascending=False).head(5))
+        # print(result_df.sort_values(by="all", ascending=True).head(5))
         return result_df
     
-    def test_a_portfolio(self, list_of_stocks: list):
+    def test_a_portfolio(self, list_of_stocks: list, start_date: datetime.datetime = datetime.date(2015, 12, 31)):
         result = []
         for x in list_of_stocks:
 
             try:
-                temp = self.single_stock_checker.check_money_made_by_div(pd.to_datetime("2015-12-31"), 15, x, self.combined_data, 100)
+                temp = self.single_stock_checker.check_money_made_by_div(start_date, 15, x, self.combined_data, 100)
             except Exception as e:
-                print("no dividends found")
+                print("no dividends found portfolio")
                 print(e)
                 continue
             
@@ -292,5 +293,29 @@ class bruteforce_checks():
         print(pd.DataFrame(result))
         return pd.DataFrame(result)
 
+    def check_along_time_axis(self):
 
+        result = pd.DataFrame()
+        for x in range(0, 20):
+
+            try:
+
+                temp_list_of_stocks = self.check_all_stocks(datetime.datetime(2000, 12, 31) + timedelta(days=365 * x))
+                temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True)["symbol"][0:30].to_list(),
+                                                datetime.datetime(2005, 12, 31) + timedelta(days=365 * x))
+                
+                temp_df["time_span"] = x
+            except Exception as e:
+                print("something went wrong")
+                print(e)
+                continue
+
+            if(x == 0):
+                result = temp_df
+            else:
+                result = pd.concat([result, temp_df], ignore_index=True)
+            pass
+        # TODO change the path
+        result.to_csv("test_along_time.csv")
+        # result.to_csv("../../data/results/test_along_time.csv")
         pass
