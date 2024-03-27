@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 
 from datetime import timedelta
+import numpy as np
 
 class single_stock_check():
     def __init__(self) -> None:
@@ -11,8 +12,9 @@ class single_stock_check():
         # get the row with the date
         row = df_combined[df_combined["information"].str.contains("adjusted close")]
         
-        # TODO change it because this is kinda slow and confusing ATM i dont really kown how to do it better
-        row = row[row["date"] == pd.Series(date).dt.to_period("M").iloc[0]]
+        
+        
+        row = row[row["date"] == pd.to_datetime(date).to_period("M")]
         
         # get the column with the stock_name
         return row[stock_name]
@@ -51,6 +53,8 @@ class single_stock_check():
     def get_dividends(self, df_combined: pd.DataFrame, x: datetime.date, look_forward_years, symbol: str):
         # TODO check for errors for example no data available
         
+        df_combined = df_combined[[symbol, "date", "information"]]
+
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
         df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|close", regex=True)) 
                                   & (df_combined["date"].dt.to_timestamp() >= pd.to_datetime(x)) 
@@ -69,7 +73,9 @@ class single_stock_check():
         # strip column names whitespace 
         df_temp.columns = df_temp.columns.str.strip()
           
-        # print(df_temp[df_temp["dividend amount"] > 0.0])
+        
+
+        
 
         return df_temp[df_temp["dividend amount"] > 0.0]
 
@@ -77,14 +83,23 @@ class single_stock_check():
         # check_moeny_made_by_stock 
 
         # get stock price at the beginning of the check
-        start_stock_price = self.invest_on_date(start_date, symbol, df_combined).iloc[0]
-        print(start_stock_price)
+        start_stock_price_in_a_list = self.invest_on_date(start_date, symbol, df_combined)
 
+        if(start_stock_price_in_a_list.empty):
+            return pd.DataFrame()
+
+        start_stock_price = start_stock_price_in_a_list.iloc[0]
+        # print(start_stock_price)
+        
         
         # get dividends
         dividends = self.get_dividends(df_combined, start_date, look_foward_years, symbol)
 
-        print(dividends)
+        # print(dividends)
+
+
+        if(dividends.empty):
+            return pd.DataFrame()
 
         output = []
         self.compound_interest_calc_recursive_with_extras(money_invested, dividends["adjusted close"].count(), dividends["adjusted close"].count(), start_stock_price, dividends["dividend amount"], dividends["adjusted close"], output)
@@ -235,15 +250,17 @@ class bruteforce_checks():
         pass
 
     def check_all_stocks(self, start_date: datetime.datetime = datetime.date(2015, 12, 31)):
+
         result = []
         for x in self.combined_data.columns:
-            # print(x)
-            try:
-                temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, start_date, 5, x)
-            except Exception as e:
-                print("no dividends found all stocks")
-                print(e)
+            
+            # stop when the column is not a stock symbol
+            # TODO rework this
+            if(x == "date" or x == "information" or x == "index" or x == "index_extracted" or x == "random_counter"):
                 continue
+
+            temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, start_date, 5, x)
+
 
             temp_growth = self.single_stock_checker.calculate_dividend_growth(temp_dividends)
             temp_stability = self.single_stock_checker.calculate_dividend_stability(temp_dividends)
@@ -274,12 +291,9 @@ class bruteforce_checks():
         result = []
         for x in list_of_stocks:
 
-            try:
-                temp = self.single_stock_checker.check_money_made_by_div(start_date, 15, x, self.combined_data, 100)
-            except Exception as e:
-                print("no dividends found portfolio")
-                print(e)
-                continue
+ 
+            temp = self.single_stock_checker.check_money_made_by_div(start_date, 5, x, self.combined_data, 100)
+ 
             
             print(temp)
             if(temp.empty):
@@ -298,17 +312,14 @@ class bruteforce_checks():
         result = pd.DataFrame()
         for x in range(0, 20):
 
-            try:
-
-                temp_list_of_stocks = self.check_all_stocks(datetime.datetime(2000, 12, 31) + timedelta(days=365 * x))
-                temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True)["symbol"][0:30].to_list(),
-                                                datetime.datetime(2005, 12, 31) + timedelta(days=365 * x))
-                
-                temp_df["time_span"] = x
-            except Exception as e:
-                print("something went wrong")
-                print(e)
+            temp_list_of_stocks = self.check_all_stocks(datetime.datetime(2000, 12, 31) + timedelta(days=365 * x))
+            if(temp_list_of_stocks.empty):
                 continue
+            temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True)["symbol"][0:30].to_list(),
+                                            datetime.datetime(2005, 12, 31) + timedelta(days=365 * x))
+            
+            temp_df["time_span"] = x
+
 
             if(x == 0):
                 result = temp_df
