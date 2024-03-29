@@ -12,8 +12,6 @@ class single_stock_check():
         # get the row with the date
         row = df_combined[df_combined["information"].str.contains("adjusted close")]
         
-        
-        
         row = row[row["date"] == pd.to_datetime(date).to_period("M")]
         
         # get the column with the stock_name
@@ -104,7 +102,34 @@ class single_stock_check():
         output = []
         self.compound_interest_calc_recursive_with_extras(money_invested, dividends["adjusted close"].count(), dividends["adjusted close"].count(), start_stock_price, dividends["dividend amount"], dividends["adjusted close"], output)
 
+        # last stock price
+        end_stock_price_in_a_list = self.invest_on_date(start_date + timedelta(365 * look_foward_years), symbol, df_combined)
         
+        if(end_stock_price_in_a_list.empty):
+            return pd.DataFrame(output)
+        
+        end_stock_price = end_stock_price_in_a_list.iloc[0]
+
+        # last dividend stock price
+        last_dividend_stock_price = dividends["adjusted close"].iloc[-1] 
+
+        last_money_made = output[-1]["money"]
+
+        last_money = float(last_money_made) * (end_stock_price/last_dividend_stock_price)
+
+        output.append({
+            "r-anual_interest_rate": str(np.nan),
+            "money": str(last_money),
+            "growth_from_stock": str(end_stock_price/last_dividend_stock_price),
+            "last stock price": end_stock_price,
+            "current stock price": end_stock_price,
+            "money from growth" : str(last_money * (end_stock_price/last_dividend_stock_price)),
+            "dividend": np.nan,
+            "dividend_money": np.nan,
+            "date": np.nan
+        })
+
+
         # money_invested *(end_money/start_money)
 
         # calculate money earned until next dividend
@@ -203,7 +228,7 @@ class single_stock_check():
         # print("new money: "+str(r_money))
         # print("")
 
-        #TODO change the output list according to the new values in the print statement
+
         output.append({
             "r-anual_interest_rate": str(r_anual_interest_rate),
             "money": str(r_money),
@@ -291,20 +316,18 @@ class bruteforce_checks():
         result = []
         for x in list_of_stocks:
 
- 
             temp = self.single_stock_checker.check_money_made_by_div(start_date, 5, x, self.combined_data, 100)
  
-            
-            print(temp)
             if(temp.empty):
                 continue
+ 
             temp_money_made = temp["money"].iloc[-1]
             result.append({
                 "symbol": x,
                 "money_made": temp_money_made
             })
 
-        print(pd.DataFrame(result))
+        
         return pd.DataFrame(result)
 
     def check_along_time_axis(self):

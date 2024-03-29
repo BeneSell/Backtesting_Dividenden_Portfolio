@@ -44,19 +44,19 @@ pre_combine = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
 
 vis_alpha = vis.visualize_alphavantage(pre_alpha)
 vis_alpha.visualize_stock_data(["600983"])
-vis_alpha.visualize_stock_data(["YUM"])
+vis_alpha.visualize_stock_data(["DPZ"])
 
 # vis_fmp = vis.visualize_fmp(pre_fmp)
 # vis_fmp.visualize_dividenden_data("ADBE")
 
 
-vis_alpha.visualize_dividenden_data(["AAPL"])
+vis_alpha.visualize_dividenden_data(["DPZ"])
 
 
 
 
 
-vis_combined = vis.visualize_combined_data(pre_combine.combined_data)
+vis_combined = vis.visualize_combined_data(pre_combine)
 vis_combined.fmp_vs_alpha("ADBE")
 
 
@@ -64,7 +64,7 @@ vis_combined.fmp_vs_alpha("ADBE")
 # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
 # try: 
 
-# bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2011-12-31"), look_foward_years=15, symbol="C", df_combined=pre_combine.combined_data, money_invested=100)
+print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2011-12-31"), look_foward_years=5, symbol="AAPL", df_combined=pre_combine.combined_data, money_invested=100))
 
 
 # apple_dividends = bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
@@ -74,7 +74,7 @@ vis_combined.fmp_vs_alpha("ADBE")
 # bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True)["symbol"][0:30].to_list())
 # print(stock_results.sort_values(by="all", ascending=True)[0:30])
 
-bl.bruteforce_checks(pre_combine.combined_data).check_along_time_axis()
+# bl.bruteforce_checks(pre_combine.combined_data).check_along_time_axis()
 
 
 # bl.single_stock_check().calculate_dividend_growth(apple_dividends)
