@@ -17,34 +17,36 @@ class single_stock_check():
         # get the column with the stock_name
         return row[stock_name]
 
+
+    # TODO: Check if commiting this effect something
     # filtering data to get symbols wich have dividend over 5
 
-    def check_for_min_dividend(self, df_combined: pd.DataFrame, min_dividend: float = 0.05, x: datetime.date = datetime.date(2020, 1, 1), look_back_years: int = 5):
-        """
-        Checks if a symbol has a dividend for every year in the look_back_years until the given date x
+    # def check_for_min_dividend(self, df_combined: pd.DataFrame, min_dividend: float = 0.05, x: datetime.date = datetime.date(2020, 1, 1), look_back_years: int = 5):
+    #     """
+    #     Checks if a symbol has a dividend for every year in the look_back_years until the given date x
         
-        Args:
-            df_combined (pd.DataFrame): dataframe with dividend values
-            min_dividend (float, optional): minimum dividend. Defaults to 5.
-        """
+    #     Args:
+    #         df_combined (pd.DataFrame): dataframe with dividend values
+    #         min_dividend (float, optional): minimum dividend. Defaults to 5.
+    #     """
 
-        # TODO think about the amout of times a dividend is paid in a year
-        df_temp = df_combined.loc[(df_combined["information"].str.contains("adjDividend")) & (pd.to_datetime(df_combined["date"]) <= pd.to_datetime(x))]
-        df_temp["year_period"] = pd.to_datetime(df_combined["date"]).dt.to_period("Y")
+    #     # TODO think about the amout of times a dividend is paid in a year
+    #     df_temp = df_combined.loc[(df_combined["information"].str.contains("adjDividend")) & (pd.to_datetime(df_combined["date"]) <= pd.to_datetime(x))]
+    #     df_temp["year_period"] = pd.to_datetime(df_combined["date"]).dt.to_period("Y")
         
-        df_temp["value"] = df_temp["value"].astype(float)
-        df_temp = df_temp.groupby("year_period").sum().reset_index()
+    #     df_temp["value"] = df_temp["value"].astype(float)
+    #     df_temp = df_temp.groupby("year_period").sum().reset_index()
         
-        # subtract year of x with look_back_years
-        first_year = x.year - look_back_years
+    #     # subtract year of x with look_back_years
+    #     first_year = x.year - look_back_years
 
-        # df_temp["year_period"] = df_temp["year_period"].astype(str).astype(int)
-        print(df_temp["value"])
-        df_temp = df_temp[df_temp["year_period"].astype(str).astype(int) > first_year]
+    #     # df_temp["year_period"] = df_temp["year_period"].astype(str).astype(int)
+    #     print(df_temp["value"])
+    #     df_temp = df_temp[df_temp["year_period"].astype(str).astype(int) > first_year]
 
-        result = df_temp.loc[df_temp["value"].astype(float) >= min_dividend]["value"].all()
+    #     result = df_temp.loc[df_temp["value"].astype(float) >= min_dividend]["value"].all()
 
-        return result
+    #     return result
 
 # check_for_min_dividend(df[df["symbol"] == "MSFT"], 0.05, datetime.date(2020, 1, 1), 15)
 

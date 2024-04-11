@@ -41,6 +41,7 @@ pre_alpha = pre.preproccessing_alphavantage_data(raw_data_alpha)
 
 pre_combine = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
 
+print(pre_combine.combined_data["date"])
 
 vis_alpha = vis.visualize_alphavantage(pre_alpha)
 vis_alpha.visualize_stock_data(["600983"])
@@ -84,7 +85,6 @@ print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime(
 #     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2001-12-31') + datetime.timedelta(days=365 * 4)}")
 #     print("")
 #     print(e)
-# bl.single_stock_check().check_for_min_dividend(pre_combine.combined_data, 0.05, pd.to_datetime("2020-01-01"), 15)
 
 # bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2005-03-01"), 1, "AAPL")
 
