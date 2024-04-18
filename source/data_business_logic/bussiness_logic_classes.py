@@ -2,6 +2,8 @@ import pandas as pd
 import datetime
 
 from datetime import timedelta
+import numpy as np
+import concurrent.futures
 
 class single_stock_check():
     def __init__(self) -> None:
@@ -11,53 +13,53 @@ class single_stock_check():
         # get the row with the date
         row = df_combined[df_combined["information"].str.contains("adjusted close")]
         
-        # TODO change it because this is kinda slow and confusing ATM i dont really kown how to do it better
-        row = row[row["date"] == pd.Series(date).dt.to_period("M").iloc[0]]
+        row = row[row["date"] == pd.to_datetime(date).to_period("M")]
         
         # get the column with the stock_name
         return row[stock_name]
 
-    def check_single_stock(self, stock_symbol:str):
-        pass
 
+    # TODO: Check if commiting this effect something
     # filtering data to get symbols wich have dividend over 5
 
-    def check_for_min_dividend(self, df_combined: pd.DataFrame, min_dividend: float = 0.05, x: datetime.date = datetime.date(2020, 1, 1), look_back_years: int = 5):
-        """
-        Checks if a symbol has a dividend for every year in the look_back_years until the given date x
+    # def check_for_min_dividend(self, df_combined: pd.DataFrame, min_dividend: float = 0.05, x: datetime.date = datetime.date(2020, 1, 1), look_back_years: int = 5):
+    #     """
+    #     Checks if a symbol has a dividend for every year in the look_back_years until the given date x
         
-        Args:
-            df_combined (pd.DataFrame): dataframe with dividend values
-            min_dividend (float, optional): minimum dividend. Defaults to 5.
-        """
+    #     Args:
+    #         df_combined (pd.DataFrame): dataframe with dividend values
+    #         min_dividend (float, optional): minimum dividend. Defaults to 5.
+    #     """
 
-        # TODO think about the amout of times a dividend is paid in a year
-        df_temp = df_combined.loc[(df_combined["information"].str.contains("adjDividend")) & (pd.to_datetime(df_combined["date"]) <= pd.to_datetime(x))]
-        df_temp["year_period"] = pd.to_datetime(df_combined["date"]).dt.to_period("Y")
+    #     # TODO think about the amout of times a dividend is paid in a year
+    #     df_temp = df_combined.loc[(df_combined["information"].str.contains("adjDividend")) & (pd.to_datetime(df_combined["date"]) <= pd.to_datetime(x))]
+    #     df_temp["year_period"] = pd.to_datetime(df_combined["date"]).dt.to_period("Y")
         
-        df_temp["value"] = df_temp["value"].astype(float)
-        df_temp = df_temp.groupby("year_period").sum().reset_index()
+    #     df_temp["value"] = df_temp["value"].astype(float)
+    #     df_temp = df_temp.groupby("year_period").sum().reset_index()
         
-        # subtract year of x with look_back_years
-        first_year = x.year - look_back_years
+    #     # subtract year of x with look_back_years
+    #     first_year = x.year - look_back_years
 
-        # df_temp["year_period"] = df_temp["year_period"].astype(str).astype(int)
-        print(df_temp["value"])
-        df_temp = df_temp[df_temp["year_period"].astype(str).astype(int) > first_year]
+    #     # df_temp["year_period"] = df_temp["year_period"].astype(str).astype(int)
+    #     print(df_temp["value"])
+    #     df_temp = df_temp[df_temp["year_period"].astype(str).astype(int) > first_year]
 
-        result = df_temp.loc[df_temp["value"].astype(float) >= min_dividend]["value"].all()
+    #     result = df_temp.loc[df_temp["value"].astype(float) >= min_dividend]["value"].all()
 
-        return result
+    #     return result
 
 # check_for_min_dividend(df[df["symbol"] == "MSFT"], 0.05, datetime.date(2020, 1, 1), 15)
 
     def get_dividends(self, df_combined: pd.DataFrame, x: datetime.date, look_forward_years, symbol: str):
-        # TODO check for erros for example no data available
+        # TODO check for errors for example no data available
         
+        df_combined = df_combined[[symbol, "date", "information"]]
+
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
-        df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|close", regex=True)) 
-                                  & (df_combined["date"].dt.to_timestamp() >= x) 
-                                  & (df_combined["date"].dt.to_timestamp() <= x + datetime.timedelta(days=365 * look_forward_years))][[symbol, "date", "information"]]
+        df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|adjusted close", regex=True)) 
+                                  & (df_combined["date"].dt.to_timestamp() >= pd.to_datetime(x)) 
+                                  & (df_combined["date"].dt.to_timestamp() <= pd.to_datetime(x + datetime.timedelta(days=365 * look_forward_years)))][[symbol, "date", "information"]]
         
         # print duplicates on date 
         # print(df_temp[df_temp.duplicated(subset=["date"], keep=False)])
@@ -71,8 +73,12 @@ class single_stock_check():
         
         # strip column names whitespace 
         df_temp.columns = df_temp.columns.str.strip()
-          
-        # print(df_temp[df_temp["dividend amount"] > 0.0])
+
+        if df_temp.empty or "dividend amount" not in df_temp.columns:
+            return pd.DataFrame()  
+        
+
+        
 
         return df_temp[df_temp["dividend amount"] > 0.0]
 
@@ -80,19 +86,56 @@ class single_stock_check():
         # check_moeny_made_by_stock 
 
         # get stock price at the beginning of the check
-        start_stock_price = self.invest_on_date(start_date, symbol, df_combined).iloc[0]
-        print(start_stock_price)
+        start_stock_price_in_a_list = self.invest_on_date(start_date, symbol, df_combined)
+        
 
+        if(start_stock_price_in_a_list.empty):
+            return pd.DataFrame()
+
+        start_stock_price = start_stock_price_in_a_list.iloc[0]
+        # print(start_stock_price)
+        
         
         # get dividends
         dividends = self.get_dividends(df_combined, start_date, look_foward_years, symbol)
 
-        print(dividends)
+        # print(dividends)
+
+
+        if(dividends.empty):
+            return pd.DataFrame()
 
         output = []
         self.compound_interest_calc_recursive_with_extras(money_invested, dividends["adjusted close"].count(), dividends["adjusted close"].count(), start_stock_price, dividends["dividend amount"], dividends["adjusted close"], output)
 
+        # last stock price
+        end_stock_price_in_a_list = self.invest_on_date(start_date + timedelta(365 * look_foward_years), symbol, df_combined)
         
+        if(end_stock_price_in_a_list.empty):
+            return pd.DataFrame(output)
+        
+        end_stock_price = end_stock_price_in_a_list.iloc[0]
+
+        # last dividend stock price
+        last_dividend_stock_price = dividends["adjusted close"].iloc[-1] 
+
+        last_money_made = output[-1]["money"]
+
+        last_money = float(last_money_made) * (end_stock_price/last_dividend_stock_price)
+
+        output.append({
+            "r-anual_interest_rate": str(np.nan),
+            "money": str(last_money),
+            "growth_from_stock": str(end_stock_price/last_dividend_stock_price),
+            "last stock price": output[-1]["current stock price"],
+            "current stock price": end_stock_price,
+            "money from growth" : str(last_money * (end_stock_price/last_dividend_stock_price)),
+            "dividend": np.nan,
+            "dividend_money": np.nan,
+            "date": np.nan
+        })
+
+
         # money_invested *(end_money/start_money)
 
         # calculate money earned until next dividend
@@ -163,14 +206,16 @@ class single_stock_check():
             last_stock_price = s_anual_stock_price_change_list.iloc[s_months - r_months - 1]
             pass
         
-        print("r-anual interest rate:" + str(r_anual_interest_rate))
-        print("money:" + str(r_money))
-        print("growth from stock: "+ str( r_anual_stock_price_change/last_stock_price))
-        print(f"last stock price: {last_stock_price}")
-        print(f"current stock price: {r_anual_stock_price_change}")
-        print("money from growth: "+ str(r_money * (r_anual_stock_price_change/last_stock_price)))
-        print("dividend: "+ str(1 + r_anual_interest_rate))
-        print("dividend money: "+ str(r_money * (r_anual_interest_rate)))
+
+        # a lot of print statements for debugging
+        # print("r-anual interest rate:" + str(r_anual_interest_rate))
+        # print("money:" + str(r_money))
+        # print("growth from stock: "+ str( r_anual_stock_price_change/last_stock_price))
+        # print(f"last stock price: {last_stock_price}")
+        # print(f"current stock price: {r_anual_stock_price_change}")
+        # print("money from growth: "+ str(r_money * (r_anual_stock_price_change/last_stock_price)))
+        # print("dividend: "+ str(1 + r_anual_interest_rate))
+        # print("dividend money: "+ str(r_money * (r_anual_interest_rate)))
         
         # calculate the anual interest rate
         
@@ -180,16 +225,16 @@ class single_stock_check():
         
         # print(f"interest after year {(s_months+1) - r_months}:{r_anual_interest_rate * r_money : 0.2f},\t total money:{r_money * (1 + r_anual_interest_rate): 0.2f}")
         
-        print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
+        # print("dividend after money: "+ str(r_money * (r_anual_interest_rate)))
 
         # adding the interest to the money
         r_money = r_money + (r_money * r_anual_interest_rate)
 
         
-        print("new money: "+str(r_money))
-        print("")
+        # print("new money: "+str(r_money))
+        # print("")
 
-        #TODO change the output list according to the new values in the print statement
+
         output.append({
             "r-anual_interest_rate": str(r_anual_interest_rate),
             "money": str(r_money),
@@ -227,26 +272,37 @@ class single_stock_check():
         return dividend_intervals.var()
     
 
+
+
 class bruteforce_checks():
     def __init__(self, combined_data) -> None:
         self.single_stock_checker = single_stock_check()
         self.combined_data = combined_data
         pass
 
-    def check_all_stocks(self):
+    def check_all_stocks(self, start_date: datetime.datetime = datetime.date(2015, 12, 31), look_forward_years: int = 5):
+
         result = []
+        
+
         for x in self.combined_data.columns:
-            print(x)
-            try:
-                temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, pd.to_datetime("2000-03-01"), 5, x)
-            except Exception as e:
-                print("no dividends found")
-                print(e)
+            
+            # stop when the column is not a stock symbol
+            # TODO rework this
+            if(x == "date" or x == "information" or x == "index" or x == "index_extracted" or x == "random_counter"):
+                continue
+            
+            local_single_stock_checker = single_stock_check()
+
+            temp_dividends = local_single_stock_checker.get_dividends(self.combined_data, start_date, look_forward_years, x)
+
+            # stop when no dividends are found
+            if(temp_dividends.empty):
                 continue
 
-            temp_growth = self.single_stock_checker.calculate_dividend_growth(temp_dividends)
-            temp_stability = self.single_stock_checker.calculate_dividend_stability(temp_dividends)
-            temp_yield = self.single_stock_checker.calculate_dividend_yield(temp_dividends)
+            temp_growth = local_single_stock_checker.calculate_dividend_growth(temp_dividends)
+            temp_stability = local_single_stock_checker.calculate_dividend_stability(temp_dividends)
+            temp_yield = local_single_stock_checker.calculate_dividend_yield(temp_dividends)
             
             result.append({
                 "symbol": x,
@@ -257,40 +313,109 @@ class bruteforce_checks():
         	
         result_df = pd.DataFrame(result)
         
-        # create a all column where the positions are added together not the values
+        if result_df.empty:
+            return result_df
+        
         result_df["rank_growth"] = result_df["growth"].rank(ascending=False) 
         result_df["rank_stability"] = result_df["stability"].rank(ascending=False) 
         result_df["rank_yield"] = result_df["yield"].rank(ascending=False)
         result_df["all"] = result_df["rank_growth"] + result_df["rank_stability"] + result_df["rank_yield"]
 
-        print(result_df.sort_values(by="yield", ascending=False).head(5))
-        print(result_df.sort_values(by="growth", ascending=False).head(5))
-        print(result_df.sort_values(by="stability", ascending=False).head(5))
-        print(result_df.sort_values(by="all", ascending=True).head(5))
+        # print(result_df.sort_values(by="yield", ascending=False).head(5))
+        # print(result_df.sort_values(by="growth", ascending=False).head(5))
+        # print(result_df.sort_values(by="stability", ascending=False).head(5))
+        # print(result_df.sort_values(by="all", ascending=True).head(5))
         return result_df
     
-    def test_a_portfolio(self, list_of_stocks: list):
+    def test_a_portfolio(self, df_of_stocks: pd.DataFrame, start_date: datetime.datetime = datetime.date(2015, 12, 31), look_forward_years: int = 5):
         result = []
-        for x in list_of_stocks:
 
-            try:
-                temp = self.single_stock_checker.check_money_made_by_div(pd.to_datetime("2015-12-31"), 15, x, self.combined_data, 100)
-            except Exception as e:
-                print("no dividends found")
-                print(e)
-                continue
-            
-            print(temp)
+        local_single_stock_checker = single_stock_check()
+
+        for x in df_of_stocks["symbol"].to_list():
+
+            temp = local_single_stock_checker.check_money_made_by_div(start_date, look_forward_years, x, self.combined_data, 100)
+ 
             if(temp.empty):
                 continue
+
+            # TODO rework this for loop because its not the pandas way
+            temp_df_symbol = df_of_stocks[df_of_stocks["symbol"] == x]
+
             temp_money_made = temp["money"].iloc[-1]
             result.append({
                 "symbol": x,
-                "money_made": temp_money_made
+                "money_made": temp_money_made,
+                "all": temp_df_symbol["all"].iloc[0],
+                "growth": temp_df_symbol["growth"].iloc[0],
+                "stability": temp_df_symbol["stability"].iloc[0],
+                "yield": temp_df_symbol["yield"].iloc[0],
+                "rank_growth": temp_df_symbol["rank_growth"].iloc[0],
+                "rank_stability": temp_df_symbol["rank_stability"].iloc[0],
+                "rank_yield": temp_df_symbol["rank_yield"].iloc[0]
             })
 
-        print(pd.DataFrame(result))
+        
         return pd.DataFrame(result)
 
+    def parallelize_check_along_time_method(self, x, start_date: datetime.datetime = datetime.date(1990, 12, 31), look_backward_years: int = 5, look_forward_years: int = 5):
+            # look_backward_years + start_date + the time span
+            # 2000 + 5 + 0
+            # 2000 + 5 + 1
+            temp_list_of_stocks = self.check_all_stocks(start_date 
+                                                        + timedelta(days=365 * x), look_backward_years)
+            if(temp_list_of_stocks.empty):
+                return pd.DataFrame()
+            # look_backward_years + look_forward_years + start_date + the time span
+            # 2000 + 10 + 0
+            # 2000 + 10 + 1
+            temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True).iloc[:30],
+                                            start_date 
+                                            + timedelta(days=365 * (look_backward_years)) 
+                                            + timedelta(days=365 * x), look_forward_years)
+            
+            
+            
+            temp_df["time_span"] = x
+            temp_df["start_date"] = start_date + timedelta(days=365 * x)
+            temp_df["middle_date"] = start_date + timedelta(days=365 * x) + timedelta(days=365 * look_backward_years)
+            temp_df["future_date"] = start_date + timedelta(days=365 * (look_forward_years + look_backward_years)) + timedelta(days=365 * x)
+            temp_df["look_backward_years"] = look_backward_years
+            temp_df["look_forward_years"] = look_forward_years
+            # stock start stock end etc
 
-        pass
+            return temp_df
+
+    def check_along_time_axis(self, start_date: datetime.datetime = datetime.date(1990, 12, 31), look_backward_years: int = 5, look_forward_years: int = 5):
+
+        
+        future_results = []
+        num_workers = 30
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
+            for x in range(0, 30):
+                # create copy of self.combined_data
+                
+                future_results.append(executor.submit(self.parallelize_check_along_time_method, x, start_date, look_backward_years, look_forward_years))
+
+            results = [future.result() for future in concurrent.futures.as_completed(future_results)]
+
+        final_result = pd.concat(results, ignore_index=True)
+
+        return final_result
+        
+    def check_along_time_and_timespan(self):
+
+        result = pd.DataFrame()
+
+        for x in range(3, 11):
+            for y in range(3, 11):
+                print(f"look_backward_years: {x}, look_forward_years: {y}, time: {datetime.datetime.now()}")
+                temp_result = self.check_along_time_axis(look_backward_years=x, look_forward_years=y)
+
+                if(x == 1):
+                    result = temp_result
+                else:
+                    result = pd.concat([result, temp_result], ignore_index=True)
+            pass
+        return result

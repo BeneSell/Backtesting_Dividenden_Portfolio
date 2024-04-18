@@ -136,8 +136,9 @@ class visualize_alphavantage():
 
 class visualize_combined_data():
      
-    def __init__(self, combined_data: pd.DataFrame) -> None:
-        self.combined_data = combined_data
+    def __init__(self, pre_combine: pre.preproccessing_combined_data) -> None:
+        self.pre_combine = pre_combine
+        self.combined_data = pre_combine.combined_data
           
 
     def fmp_vs_alpha(self, stock_symbol:str = "ADBE"):
@@ -159,3 +160,9 @@ class visualize_combined_data():
         
         plt.show()
         pass
+
+class visualize_result_data():
+     
+    def __init__(self, result_data: pd.DataFrame) -> None:
+        
+        self.result_data = result_data
