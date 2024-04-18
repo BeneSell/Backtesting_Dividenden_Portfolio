@@ -3,6 +3,7 @@ import datetime
 
 from datetime import timedelta
 import numpy as np
+import concurrent.futures
 
 class single_stock_check():
     def __init__(self) -> None:
@@ -56,7 +57,7 @@ class single_stock_check():
         df_combined = df_combined[[symbol, "date", "information"]]
 
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
-        df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|close", regex=True)) 
+        df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|adjusted close", regex=True)) 
                                   & (df_combined["date"].dt.to_timestamp() >= pd.to_datetime(x)) 
                                   & (df_combined["date"].dt.to_timestamp() <= pd.to_datetime(x + datetime.timedelta(days=365 * look_forward_years)))][[symbol, "date", "information"]]
         
@@ -72,7 +73,9 @@ class single_stock_check():
         
         # strip column names whitespace 
         df_temp.columns = df_temp.columns.str.strip()
-          
+
+        if df_temp.empty or "dividend amount" not in df_temp.columns:
+            return pd.DataFrame()  
         
 
         
@@ -84,6 +87,7 @@ class single_stock_check():
 
         # get stock price at the beginning of the check
         start_stock_price_in_a_list = self.invest_on_date(start_date, symbol, df_combined)
+        
 
         if(start_stock_price_in_a_list.empty):
             return pd.DataFrame()
@@ -123,7 +127,7 @@ class single_stock_check():
             "r-anual_interest_rate": str(np.nan),
             "money": str(last_money),
             "growth_from_stock": str(end_stock_price/last_dividend_stock_price),
-            "last stock price": end_stock_price,
+            "last stock price": output[-1]["current stock price"],
             "current stock price": end_stock_price,
             "money from growth" : str(last_money * (end_stock_price/last_dividend_stock_price)),
             "dividend": np.nan,
@@ -276,22 +280,29 @@ class bruteforce_checks():
         self.combined_data = combined_data
         pass
 
-    def check_all_stocks(self, start_date: datetime.datetime = datetime.date(2015, 12, 31)):
+    def check_all_stocks(self, start_date: datetime.datetime = datetime.date(2015, 12, 31), look_forward_years: int = 5):
 
         result = []
+        
+
         for x in self.combined_data.columns:
             
             # stop when the column is not a stock symbol
             # TODO rework this
             if(x == "date" or x == "information" or x == "index" or x == "index_extracted" or x == "random_counter"):
                 continue
+            
+            local_single_stock_checker = single_stock_check()
 
-            temp_dividends = self.single_stock_checker.get_dividends(self.combined_data, start_date, 5, x)
+            temp_dividends = local_single_stock_checker.get_dividends(self.combined_data, start_date, look_forward_years, x)
 
+            # stop when no dividends are found
+            if(temp_dividends.empty):
+                continue
 
-            temp_growth = self.single_stock_checker.calculate_dividend_growth(temp_dividends)
-            temp_stability = self.single_stock_checker.calculate_dividend_stability(temp_dividends)
-            temp_yield = self.single_stock_checker.calculate_dividend_yield(temp_dividends)
+            temp_growth = local_single_stock_checker.calculate_dividend_growth(temp_dividends)
+            temp_stability = local_single_stock_checker.calculate_dividend_stability(temp_dividends)
+            temp_yield = local_single_stock_checker.calculate_dividend_yield(temp_dividends)
             
             result.append({
                 "symbol": x,
@@ -302,6 +313,8 @@ class bruteforce_checks():
         	
         result_df = pd.DataFrame(result)
         
+        if result_df.empty:
+            return result_df
         
         result_df["rank_growth"] = result_df["growth"].rank(ascending=False) 
         result_df["rank_stability"] = result_df["stability"].rank(ascending=False) 
@@ -314,44 +327,95 @@ class bruteforce_checks():
         # print(result_df.sort_values(by="all", ascending=True).head(5))
         return result_df
     
-    def test_a_portfolio(self, list_of_stocks: list, start_date: datetime.datetime = datetime.date(2015, 12, 31)):
+    def test_a_portfolio(self, df_of_stocks: pd.DataFrame, start_date: datetime.datetime = datetime.date(2015, 12, 31), look_forward_years: int = 5):
         result = []
-        for x in list_of_stocks:
 
-            temp = self.single_stock_checker.check_money_made_by_div(start_date, 5, x, self.combined_data, 100)
+        local_single_stock_checker = single_stock_check()
+
+        for x in df_of_stocks["symbol"].to_list():
+
+            temp = local_single_stock_checker.check_money_made_by_div(start_date, look_forward_years, x, self.combined_data, 100)
  
             if(temp.empty):
                 continue
- 
+
+            # TODO rework this for loop because its not the pandas way
+            temp_df_symbol = df_of_stocks[df_of_stocks["symbol"] == x]
+
             temp_money_made = temp["money"].iloc[-1]
             result.append({
                 "symbol": x,
-                "money_made": temp_money_made
+                "money_made": temp_money_made,
+                "all": temp_df_symbol["all"].iloc[0],
+                "growth": temp_df_symbol["growth"].iloc[0],
+                "stability": temp_df_symbol["stability"].iloc[0],
+                "yield": temp_df_symbol["yield"].iloc[0],
+                "rank_growth": temp_df_symbol["rank_growth"].iloc[0],
+                "rank_stability": temp_df_symbol["rank_stability"].iloc[0],
+                "rank_yield": temp_df_symbol["rank_yield"].iloc[0]
             })
 
         
         return pd.DataFrame(result)
 
-    def check_along_time_axis(self):
-
-        result = pd.DataFrame()
-        for x in range(0, 20):
-
-            temp_list_of_stocks = self.check_all_stocks(datetime.datetime(2000, 12, 31) + timedelta(days=365 * x))
+    def parallelize_check_along_time_method(self, x, start_date: datetime.datetime = datetime.date(1990, 12, 31), look_backward_years: int = 5, look_forward_years: int = 5):
+            # look_backward_years + start_date + the time span
+            # 2000 + 5 + 0
+            # 2000 + 5 + 1
+            temp_list_of_stocks = self.check_all_stocks(start_date 
+                                                        + timedelta(days=365 * x), look_backward_years)
             if(temp_list_of_stocks.empty):
-                continue
-            temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True)["symbol"][0:30].to_list(),
-                                            datetime.datetime(2005, 12, 31) + timedelta(days=365 * x))
+                return pd.DataFrame()
+            # look_backward_years + look_forward_years + start_date + the time span
+            # 2000 + 10 + 0
+            # 2000 + 10 + 1
+            temp_df = self.test_a_portfolio(temp_list_of_stocks.sort_values(by="all", ascending=True).iloc[:30],
+                                            start_date 
+                                            + timedelta(days=365 * (look_backward_years)) 
+                                            + timedelta(days=365 * x), look_forward_years)
+            
+            
             
             temp_df["time_span"] = x
+            temp_df["start_date"] = start_date + timedelta(days=365 * x)
+            temp_df["middle_date"] = start_date + timedelta(days=365 * x) + timedelta(days=365 * look_backward_years)
+            temp_df["future_date"] = start_date + timedelta(days=365 * (look_forward_years + look_backward_years)) + timedelta(days=365 * x)
+            temp_df["look_backward_years"] = look_backward_years
+            temp_df["look_forward_years"] = look_forward_years
+            # stock start stock end etc
 
+            return temp_df
 
-            if(x == 0):
-                result = temp_df
-            else:
-                result = pd.concat([result, temp_df], ignore_index=True)
+    def check_along_time_axis(self, start_date: datetime.datetime = datetime.date(1990, 12, 31), look_backward_years: int = 5, look_forward_years: int = 5):
+
+        
+        future_results = []
+        num_workers = 30
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
+            for x in range(0, 30):
+                # create copy of self.combined_data
+                
+                future_results.append(executor.submit(self.parallelize_check_along_time_method, x, start_date, look_backward_years, look_forward_years))
+
+            results = [future.result() for future in concurrent.futures.as_completed(future_results)]
+
+        final_result = pd.concat(results, ignore_index=True)
+
+        return final_result
+        
+    def check_along_time_and_timespan(self):
+
+        result = pd.DataFrame()
+
+        for x in range(3, 11):
+            for y in range(3, 11):
+                print(f"look_backward_years: {x}, look_forward_years: {y}, time: {datetime.datetime.now()}")
+                temp_result = self.check_along_time_axis(look_backward_years=x, look_forward_years=y)
+
+                if(x == 1):
+                    result = temp_result
+                else:
+                    result = pd.concat([result, temp_result], ignore_index=True)
             pass
-        # TODO change the path
-        result.to_csv("test_along_time.csv")
-        # result.to_csv("../../data/results/test_along_time.csv")
-        pass
+        return result

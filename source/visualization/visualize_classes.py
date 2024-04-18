@@ -160,3 +160,9 @@ class visualize_combined_data():
         
         plt.show()
         pass
+
+class visualize_result_data():
+     
+    def __init__(self, result_data: pd.DataFrame) -> None:
+        
+        self.result_data = result_data
