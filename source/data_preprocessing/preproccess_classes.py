@@ -259,4 +259,9 @@ class preproccessing_combined_data():
 
         df_concat = pd.concat([alpha_div, fmp_div, alpha_stock, fmp_stock], axis=0)
 
+        df_concat["information"] = df_concat["information"].replace({"close":"fmp_close", 
+                                                                     "dividend":"fmp_dividend", 
+                                                                     " dividend amount":"alpha_dividend", 
+                                                                     " adjusted close":"alpha_close"})
+
         return df_concat

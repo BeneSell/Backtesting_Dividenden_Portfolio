@@ -11,7 +11,7 @@ class single_stock_check():
 
     def invest_on_date(self, date: datetime, stock_name, df_combined: pd.DataFrame):
         # get the row with the date
-        row = df_combined[df_combined["information"].str.contains("adjusted close")]
+        row = df_combined[df_combined["information"].str.contains("alpha_close")]
         
         row = row[row["date"] == pd.to_datetime(date).to_period("M")]
         
@@ -57,7 +57,7 @@ class single_stock_check():
         df_combined = df_combined[[symbol, "date", "information"]]
 
         # print(df_combined["date"].dt.to_timestamp().sort_values(ascending=False) <= x)
-        df_temp = df_combined.loc[(df_combined["information"].str.contains("dividend amount|adjusted close", regex=True)) 
+        df_temp = df_combined.loc[(df_combined["information"].str.contains("alpha_dividend|alpha_close", regex=True)) 
                                   & (df_combined["date"].dt.to_timestamp() >= pd.to_datetime(x)) 
                                   & (df_combined["date"].dt.to_timestamp() <= pd.to_datetime(x + datetime.timedelta(days=365 * look_forward_years)))][[symbol, "date", "information"]]
         
@@ -74,13 +74,13 @@ class single_stock_check():
         # strip column names whitespace 
         df_temp.columns = df_temp.columns.str.strip()
 
-        if df_temp.empty or "dividend amount" not in df_temp.columns:
+        if df_temp.empty or "alpha_dividend" not in df_temp.columns:
             return pd.DataFrame()  
         
 
         
 
-        return df_temp[df_temp["dividend amount"] > 0.0]
+        return df_temp[df_temp["alpha_dividend"] > 0.0]
 
     def check_money_made_by_div(self, start_date: datetime.datetime, look_foward_years: int, symbol: str, df_combined: pd.DataFrame, money_invested: int = 1):
         # check_moeny_made_by_stock 
@@ -106,7 +106,7 @@ class single_stock_check():
             return pd.DataFrame()
 
         output = []
-        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["adjusted close"].count(), dividends["adjusted close"].count(), start_stock_price, dividends["dividend amount"], dividends["adjusted close"], output)
+        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["alpha_close"].count(), dividends["alpha_close"].count(), start_stock_price, dividends["alpha_dividend"], dividends["alpha_close"], output)
 
         # last stock price
         end_stock_price_in_a_list = self.invest_on_date(start_date + timedelta(365 * look_foward_years), symbol, df_combined)
@@ -117,7 +117,7 @@ class single_stock_check():
         end_stock_price = end_stock_price_in_a_list.iloc[0]
 
         # last dividend stock price
-        last_dividend_stock_price = dividends["adjusted close"].iloc[-1] 
+        last_dividend_stock_price = dividends["alpha_close"].iloc[-1] 
 
         last_money_made = output[-1]["money"]
 
@@ -252,13 +252,13 @@ class single_stock_check():
         return self.compound_interest_calc_recursive_with_extras(r_money, r_months-1, s_months,s_first_stock_price, s_anual_interest_rate_list, s_anual_stock_price_change_list, output)
     
     def calculate_dividend_yield(self, dividends_of_stock: pd.DataFrame):
-        # print("mean of dividend yield: " + str(dividends_of_stock["dividend amount"].mean()))
-        return dividends_of_stock["dividend amount"].mean()
+        # print("mean of dividend yield: " + str(dividends_of_stock["alpha_dividend"].mean()))
+        return dividends_of_stock["alpha_dividend"].mean()
         pass
     
     def calculate_dividend_growth(self, dividends_of_stock):
 
-        dividend_growth = dividends_of_stock["dividend amount"].pct_change()
+        dividend_growth = dividends_of_stock["alpha_dividend"].pct_change()
         # print(dividend_growth)
         # print("mean of dividend growth: "+str(dividend_growth.mean()))
         return dividend_growth.mean()

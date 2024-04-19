@@ -32,6 +32,8 @@ def main():
         data = json_file.read()
         raw_data_alpha = json.loads(data)
 
+    # results_sorted_06 is a good result file and not dynamic (it dosent get overwritten)
+    result_df = pd.read_csv("../data/results/bruteforce_results_sorted_06.csv")
 
     pre_fmp = pre.preproccessing_fmp_data(raw_data_fmp_dividends, raw_data_fmp_stock_value)
     pre_alpha = pre.preproccessing_alphavantage_data(raw_data_alpha)
@@ -41,25 +43,26 @@ def main():
 
     pre_combine = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
 
-    print(pre_combine.combined_data["DPZ"])
+    
 
     vis_alpha = vis.visualize_alphavantage(pre_alpha)
-    vis_alpha.visualize_stock_data(["600983"])
-    vis_alpha.visualize_stock_data(["GGP"])
+    # vis_alpha.visualize_stock_data(["600983"])
+    vis_alpha.visualize_stock_data(["GGP", "MSCI"])
+    # vis_alpha.visualize_dividenden_data(["GGP"])
 
-    # vis_fmp = vis.visualize_fmp(pre_fmp)
-    # vis_fmp.visualize_dividenden_data("ADBE")
-
-
-    vis_alpha.visualize_dividenden_data(["GGP"])
-
+    vis_fmp = vis.visualize_fmp(pre_fmp)
+    vis_fmp.visualize_dividenden_data("ADBE")
 
 
 
 
     vis_combined = vis.visualize_combined_data(pre_combine)
-    vis_combined.fmp_vs_alpha("DPZ")
+    vis_combined.fmp_vs_alpha("AAPL")
+    vis_combined.fmp_stock_vs_fmp_dividend("AAPL")
 
+    vis_result = vis.visualize_result_data(result_df)
+    vis_result.visualize_scatter_plots()
+    # vis_result.visualize_per_iteration()
 
     # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
     # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
@@ -67,22 +70,23 @@ def main():
 
     print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2009-01-02"), look_foward_years=10, symbol="DPZ", df_combined=pre_combine.combined_data, money_invested=100))
 
+
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
     # bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2000-12-31"), 20, "DPZ").to_csv("../data/results/DPZ_dividends.csv")
 
     # apple_dividends = bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
 
-    # stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
+    stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
     
-    # print(bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True).iloc[:30]))
+    print(bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True).iloc[:30]))
 
     
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])
 
     # print(bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan())
 
-    result = bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan()
-    result.to_csv("../data/results/bruteforce_results.csv")
+    # result = bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan()
+    # result.to_csv("../data/results/bruteforce_results.csv")
 
 
     # bl.single_stock_check().calculate_dividend_growth(apple_dividends)
