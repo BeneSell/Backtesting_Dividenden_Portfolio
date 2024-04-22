@@ -1,8 +1,13 @@
+from datetime import timedelta
 import pandas as pd
 import json
 import data_preprocessing.preproccess_classes as pre
 import matplotlib.pyplot as plt
 from plotly.offline import iplot
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import data_business_logic.bussiness_logic_classes as bl
+
 
 import cufflinks
 cufflinks.go_offline()
@@ -29,10 +34,30 @@ class visualize_fmp():
 
         # plt.plot(df_to_plot)
 
-        df_to_plot.iplot(kind="line", x="date", y="value", title=f"Datetime plot '{stock_symbol}' from financal modeling prep", xTitle="date", yTitle="dividend", asFigure=True).write_html(f"../data/vis/{stock_symbol}_fmp_dividende.html")
+        df_to_plot.iplot(kind="bar", x="date", y="value", title=f"Datetime plot '{stock_symbol}' from financal modeling prep", xTitle="date", yTitle="dividend", asFigure=True).write_html(f"../data/vis/{stock_symbol}_fmp_dividende.html")
         # df_to_plot.iplot(kind="line", x="date", y="value", title=f"Datetime plot '{stock_symbol}' from financal modeling prep", xTitle="x", yTitle="x", asFigure=True).write_html(f"../data/vis/{stock_symbol}_fmp_stock.html")
 
     pass
+
+    def visualize_stock_as_candlestick(self, stock_symbol:str):
+
+        # only get where column stock_symbol is filled
+        temp_df = self.preproccessed_data_stock[(self.preproccessed_data_stock["symbol"] == stock_symbol)]
+
+        
+        temp_df = self.preproccessed_data_stock[(self.preproccessed_data_stock["variable"].isin(["open", "high", "low", "close"]))]
+
+
+
+        fig = go.Figure(
+             data=[go.Candlestick( x=temp_df["date"].dt.to_timestamp(),
+                                    open=temp_df[temp_df["variable"].isin(["open"])]["value"],
+                                    high=temp_df[temp_df["variable"].isin(["high"])]["value"],
+                                    low=temp_df[temp_df["variable"].isin(["low"])]["value"],
+                                    close=temp_df[temp_df["variable"].isin(["close"])]["value"]
+                                    )]) 
+        fig.write_html(f"../data/vis/{stock_symbol}_fmp_stock_candlestick.html")
+         
 
     def visualize_stock_data(self, stock_symbol:str):
         
@@ -60,6 +85,42 @@ class visualize_alphavantage():
         self.preproccessed_data = pre_alpha.normalized_data
 
     
+    def visualize_stock_as_candlestick(self, stock_symbol:str = "AAPL"):
+
+        df_with_selected_information = self.preproccessed_data[(self.preproccessed_data["information"].str.strip() == "close") 
+                                                               | (self.preproccessed_data["information"].str.strip() == "open") 
+                                                               | (self.preproccessed_data["information"].str.strip() == "high") 
+                                                               | (self.preproccessed_data["information"].str.strip() == "low")]
+
+        
+        # df_with_selected_information = df_with_selected_information.groupby(by="date").first().reset_index()
+
+        stock_symbol_list_with_date = [stock_symbol] + ["date"] + ["information"]
+
+        df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
+        # df_to_plot = df_to_plot[df_to_plot["date"] > datetime.datetime.fromisoformat("2011-12-31T00:00:00")]
+        # df_to_plot = df_to_plot[df_to_plot["date"] < datetime.datetime.fromisoformat("2016-12-31T00:00:00")]
+        df_to_plot = df_to_plot.dropna(subset=[stock_symbol])
+        print("hi")
+        print(df_to_plot[df_to_plot["information"].str.strip() == "high"][stock_symbol])
+        print(df_to_plot[df_to_plot["information"].str.strip() == "low"][stock_symbol])
+        print(df_to_plot[df_to_plot["information"].str.strip() == "close"][stock_symbol])
+
+        fig = go.Figure(
+             data=[go.Candlestick( x=df_to_plot["date"].dt.to_timestamp(),
+                                    open=df_to_plot[df_to_plot["information"].str.strip() == "open"][stock_symbol],
+                                    high=df_to_plot[df_to_plot["information"].str.strip() == "high"][stock_symbol],
+                                    low=df_to_plot[df_to_plot["information"].str.strip() == "low"][stock_symbol],
+                                    close=df_to_plot[df_to_plot["information"].str.strip() == "close"][stock_symbol]
+                                    )]) 
+        
+        fig.update_layout(title=f"{stock_symbol} candlestick chart")
+        # add x axis label
+        fig.update_xaxes(title_text="Date")
+        # add y axis label
+        fig.update_yaxes(title_text="Price")
+        fig.write_html(f"../data/vis/{stock_symbol}_alpha_stock_candlestick.html")
+
     def visualize_stock_data(self, stock_symbol_list:list = ["AAPL","ADBE", "MSFT"]):
         
 
@@ -173,13 +234,28 @@ class visualize_combined_data():
         
         filtered_df = filtered_df[[stock_symbol, 'date', 'information']]
         
+
         # Pivot the DataFrame to have 'adbe' as columns
         pivot_df = filtered_df.pivot_table(index='date', columns='information', values=stock_symbol, aggfunc='mean').rename(columns={'alpha_close': 'alpha_close', 'alpha_dividend': 'alpha_dividend'})
         print(pivot_df)
 
-        # group by information and date
+        pivot_df = pivot_df.reset_index()
+
+        fig = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
+
+        close_plot = go.Scatter(mode="lines", x=pivot_df["date"].dt.to_timestamp(), y=pivot_df["alpha_close"], name=f"close {stock_symbol}")
+        dividend_plot = go.Scatter(mode="lines", x=pivot_df["date"].dt.to_timestamp(), y=pivot_df["alpha_dividend"], name=f"dividend {stock_symbol}")
+
+        fig.add_trace(close_plot, secondary_y=True)
+        fig.add_trace(dividend_plot, secondary_y=False)
+        # add title to fig
+        fig.update_layout(title=f"{stock_symbol} dividends vs stocks")
         
-        pivot_df.reset_index().iplot(kind="line", x="date", y=['alpha_close', 'alpha_dividend'], title=f"Datetime plot '{stock_symbol}'", xTitle="date", yTitle="dividenden", asFigure=True).write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
+        fig.write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
+
+
+        
+        # pivot_df.reset_index().iplot(kind="line", x="date", y=['alpha_close', 'alpha_dividend'], title=f"Datetime plot '{stock_symbol}'", xTitle="date", yTitle="dividenden", asFigure=True).write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
         # plt.show()
 
         pass
@@ -208,26 +284,103 @@ class visualize_result_data():
         self.result_data.iplot(kind="scatter", x="rank_stability", y="money_made", mode="markers", xTitle="Rank stability", yTitle="Money made", title="Money made vs rank stability", asFigure=True).write_html(f"../data/vis/results_rank_stability_vs_money_made.html")
         self.result_data.iplot(kind="scatter", x="rank_yield", y="money_made", mode="markers", xTitle="Rank yield", yTitle="Money made", title="Money made vs rank yield", asFigure=True).write_html(f"../data/vis/results_rank_yield_vs_money_made.html")
 
+
+    def visualize_vs_msiw(self, combined_data: pd.DataFrame):
+
+
+        # thats a little bit anyoing because, you need to know if the data is there on the time
+        # whats the time you ask?
+        # well its 1990 + 12 - 6 = 
+        year_selection = 8
+        look_backward_years = 7
+
+        local_single_stock_checker = bl.single_stock_check()
+
+        # so the future date is calculated by
+        # 1990 + year_selection + look_backward_years + look_forward_years
+        # lookforward years variy between 3 and 10
+        # for example 1990 + 15 + 6 + 3 = 2014 is the first year
+
+        # msic_world_stock = msciw_data[msciw_data["information"].isin(["alpha_close"])]
+        start_date = self.result_data[(self.result_data["time_span"] == year_selection)& (self.result_data["look_backward_years"] == look_backward_years)].groupby("future_date").first()["middle_date"].iloc[0]
+        # print(start_date, msciw_data.reset_index().columns)
+        # print(msic_world_stock.reset_index().head(50))
+        
+        # print(start_date)
+        # print(local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date), look_foward_years=10, symbol="MSCI", df_combined=combined_data, money_invested=100))
+ 
+
+        # works but adds 10 years idk why
+        # print("hi", start_date, pd.to_datetime(start_date) + timedelta(days = 365 * 10))
+        print(pd.to_datetime(start_date) + timedelta(days = 365 * 4))
+        msic_money_made = pd.DataFrame([{"money_made": local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date), look_foward_years=x, symbol="MSCI", df_combined=combined_data, money_invested=100).iloc[-1]["money"], "date": pd.to_datetime(start_date) + timedelta(days = 365 * x)} for x in range(3, 11)])
+
+        print(msic_money_made)
+
+        portfolio_progression = self.result_data[(self.result_data["time_span"] == year_selection)& (self.result_data["look_backward_years"] == look_backward_years)].groupby("future_date").mean(numeric_only=True).reset_index()[["future_date", "money_made"]]
+        portfolio_progression["future_date"] = pd.to_datetime(portfolio_progression["future_date"])
+        
+        
+
+
+
+        print(portfolio_progression.columns)
+        print(portfolio_progression)
+
+        print(msic_money_made.head(10))
+        fig = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
+
+        close_plot = go.Scatter(mode="lines", x=portfolio_progression["future_date"], y=portfolio_progression["money_made"], name=f"close from portfolio {year_selection+1990} to {year_selection+ 1990 + look_backward_years} years", line=dict(color='blue'))
+        msci_plot = go.Scatter(mode="lines", x=msic_money_made["date"], y=msic_money_made["money_made"], name=f"msci world stock", line=dict(color='red'))
+
+        fig.add_trace(close_plot, secondary_y=False)
+        fig.add_trace(msci_plot, secondary_y=False)
+        # add title to fig
+        fig.update_layout(title=f"msci world vs portfolio from {year_selection+1990} to {year_selection+ 1990 + look_backward_years} years")
+        
+        fig.write_html(f"../data/vis/msci_world_vs_portfolio_{year_selection+1990}_{year_selection+ 1990 + look_backward_years}.html")
+
     def visualize_histogram_plots(self):
         self.result_data[["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/histogram_money_made.html")
+        # histogram symbols sort by frequency
+        self.result_data["symbol"].value_counts().iplot(kind="bar", xTitle="Symbol", yTitle="Frequency", title="Symbol frequency", asFigure=True).write_html(f"../data/vis/histogram_.html")
+
+        # histogram all sort by frequency
+        self.result_data["all"].value_counts().iplot(kind="bar", xTitle="All", yTitle="Frequency", title="All frequency", asFigure=True).write_html(f"../data/vis/histogram_.html")
+
+
+
         # histogram but with timespan selected before
         
         for x in range(1, 30):
+            if self.result_data[(self.result_data["time_span"] == x)].empty:
+                        continue
+            
+            self.result_data[(self.result_data["time_span"] == x)]["money_made"].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/histogram_money_made_timespan_{1990+x}_combined.html")
+
+
             for y in range(3, 11):
+                if self.result_data[(self.result_data["time_span"] == x)
+                                        & (self.result_data["look_backward_years"] == y)].empty:
+                        continue
+                
+                self.result_data[(self.result_data["time_span"] == x)
+                                        & (self.result_data["look_backward_years"] == y)][["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/histogram_money_made_timespan_{1990+x}_look_forward{y}_combined.html")
+                
+                
                 for z in range(3, 11):
                     if self.result_data[(self.result_data["time_span"] == x)
                                         & (self.result_data["look_backward_years"] == y)
                                         & (self.result_data["look_forward_years"] == z) ].empty:
                         continue
 
-                    self.result_data[(self.result_data["time_span"] == x)
-                                        & (self.result_data["look_backward_years"] == y)
-                                        & (self.result_data["look_forward_years"] == z) ][["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/histogram_money_made_timespan_{1990+x}_look_forward{y}_look_backwards{z}.html")
-        # histogram symbols sort by frequency
-        self.result_data["symbol"].value_counts().iplot(kind="bar", xTitle="Symbol", yTitle="Frequency", title="Symbol frequency", asFigure=True).write_html(f"../data/vis/histogram_.html")
+                    # self.result_data[(self.result_data["time_span"] == x)
+                    #                     & (self.result_data["look_backward_years"] == y)
+                    #                     & (self.result_data["look_forward_years"] == z) ][["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/histogram_money_made_timespan_{1990+x}_look_forward{y}_look_backwards{z}.html")
+        
 
-        # histogram all sort by frequency
-        self.result_data["all"].value_counts().iplot(kind="bar", xTitle="All", yTitle="Frequency", title="All frequency", asFigure=True).write_html(f"../data/vis/histogram_.html")
+
+
 
     def visualize_per_iteration(self):
         for x in range(1, 30):

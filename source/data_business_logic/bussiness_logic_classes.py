@@ -79,7 +79,6 @@ class single_stock_check():
         
 
         
-
         return df_temp[df_temp["alpha_dividend"] > 0.0]
 
     def check_money_made_by_div(self, start_date: datetime.datetime, look_foward_years: int, symbol: str, df_combined: pd.DataFrame, money_invested: int = 1):
@@ -87,6 +86,7 @@ class single_stock_check():
 
         # get stock price at the beginning of the check
         start_stock_price_in_a_list = self.invest_on_date(start_date, symbol, df_combined)
+
         
 
         if(start_stock_price_in_a_list.empty):
@@ -101,13 +101,23 @@ class single_stock_check():
 
         # print(dividends)
 
-
-        if(dividends.empty):
-            return pd.DataFrame()
-
         output = []
-        self.compound_interest_calc_recursive_with_extras(money_invested, dividends["alpha_close"].count(), dividends["alpha_close"].count(), start_stock_price, dividends["alpha_dividend"], dividends["alpha_close"], output)
+        
+        
+        if(not dividends.empty):
+            
+            if np.isnan(start_stock_price):
+                start_stock_price = dividends["alpha_close"].iloc[0]
 
+            self.compound_interest_calc_recursive_with_extras(money_invested, dividends["alpha_close"].count(), dividends["alpha_close"].count(), start_stock_price, dividends["alpha_dividend"], dividends["alpha_close"], output)
+            # last dividend stock price
+            last_dividend_stock_price = dividends["alpha_close"].iloc[-1] 
+            last_money_made = output[-1]["money"]
+            current_stock_price = output[-1]["current stock price"]
+        else:
+            last_dividend_stock_price = start_stock_price
+            last_money_made = money_invested
+            current_stock_price = start_stock_price
         # last stock price
         end_stock_price_in_a_list = self.invest_on_date(start_date + timedelta(365 * look_foward_years), symbol, df_combined)
         
@@ -116,18 +126,13 @@ class single_stock_check():
         
         end_stock_price = end_stock_price_in_a_list.iloc[0]
 
-        # last dividend stock price
-        last_dividend_stock_price = dividends["alpha_close"].iloc[-1] 
-
-        last_money_made = output[-1]["money"]
-
         last_money = float(last_money_made) * (end_stock_price/last_dividend_stock_price)
 
         output.append({
             "r-anual_interest_rate": str(np.nan),
             "money": str(last_money),
             "growth_from_stock": str(end_stock_price/last_dividend_stock_price),
-            "last stock price": output[-1]["current stock price"],
+            "last stock price": current_stock_price,
             "current stock price": end_stock_price,
             "money from growth" : str(last_money * (end_stock_price/last_dividend_stock_price)),
             "dividend": np.nan,

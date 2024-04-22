@@ -48,27 +48,33 @@ def main():
     vis_alpha = vis.visualize_alphavantage(pre_alpha)
     # vis_alpha.visualize_stock_data(["600983"])
     vis_alpha.visualize_stock_data(["GGP", "MSCI"])
+    vis_alpha.visualize_dividenden_data(["T", "XOM", "WBA", "ABBV", "IBM", "MMM", "CAT"])
+    vis_alpha.visualize_stock_as_candlestick("GGP")
     # vis_alpha.visualize_dividenden_data(["GGP"])
 
     vis_fmp = vis.visualize_fmp(pre_fmp)
     vis_fmp.visualize_dividenden_data("ADBE")
+    vis_fmp.visualize_stock_as_candlestick("AAPL")
 
 
 
 
     vis_combined = vis.visualize_combined_data(pre_combine)
     vis_combined.fmp_vs_alpha("AAPL")
-    vis_combined.fmp_stock_vs_fmp_dividend("AAPL")
+    vis_combined.fmp_stock_vs_fmp_dividend("GGP")
+    vis_combined.fmp_stock_vs_fmp_dividend("DPZ")
 
     vis_result = vis.visualize_result_data(result_df)
-    vis_result.visualize_scatter_plots()
+    # vis_result.visualize_histogram_plots()
+
+    vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
     # vis_result.visualize_per_iteration()
 
     # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
     # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
     # try: 
 
-    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2009-01-02"), look_foward_years=10, symbol="DPZ", df_combined=pre_combine.combined_data, money_invested=100))
+    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2000-01-02"), look_foward_years=15, symbol="MSCI", df_combined=pre_combine.combined_data, money_invested=100))
 
 
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
@@ -93,7 +99,7 @@ def main():
     # bl.single_stock_check().calculate_dividend_stability(apple_dividends)
     # bl.single_stock_check().calculate_dividend_yield(apple_dividends)
     # except Exception as e:
-    #     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2001-12-31') + datetime.timedelta(days=365 * 4)}")
+    #     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2s001-12-31') + datetime.timedelta(days=365 * 4)}")
     #     print("")
     #     print(e)
 
