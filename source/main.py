@@ -49,9 +49,14 @@ def main():
     # vis_alpha.visualize_stock_data(["600983"])
     vis_alpha.visualize_stock_data(["GGP", "MSCI"])
     vis_alpha.visualize_dividenden_data(["T", "XOM", "WBA", "ABBV", "IBM", "MMM", "CAT"])
+    vis_alpha.visualize_all_dividend_data()
+    # visualize more dividend data
+    vis_alpha.visualize_dividenden_data(["COST"])
+    vis_alpha.visualize_dividenden_data(["BTU"])
+    vis_alpha.visualize_dividenden_data(["TDG"])
     vis_alpha.visualize_stock_as_candlestick("GGP")
     # vis_alpha.visualize_dividenden_data(["GGP"])
-
+    vis_alpha.visualize_dividenden_data(["DPZ"])
     vis_fmp = vis.visualize_fmp(pre_fmp)
     vis_fmp.visualize_dividenden_data("ADBE")
     vis_fmp.visualize_stock_as_candlestick("AAPL")
@@ -66,25 +71,27 @@ def main():
 
     vis_result = vis.visualize_result_data(result_df)
     # vis_result.visualize_histogram_plots()
-
-    vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
+    # vis_result.visualize_symbol_vs_money_made()
+    # vis_result.visualize_portfolios_with_same_middledate()
+    # vis_result.visualize_scatter_plots()
+    # vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
     # vis_result.visualize_per_iteration()
 
     # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
     # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
     # try: 
 
-    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2000-01-02"), look_foward_years=15, symbol="MSCI", df_combined=pre_combine.combined_data, money_invested=100))
+    # print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2008-12-26"), look_foward_years=10, symbol="DPZ", df_combined=pre_combine.combined_data, money_invested=100))
 
 
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
-    # bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2000-12-31"), 20, "DPZ").to_csv("../data/results/DPZ_dividends.csv")
+    bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2008-12-26"), 10, "DPZ").to_csv("../data/results/DPZ_dividends.csv")
 
     # apple_dividends = bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
 
-    stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
+    # stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
     
-    print(bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True).iloc[:30]))
+    # print(bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True).iloc[:30]))
 
     
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])

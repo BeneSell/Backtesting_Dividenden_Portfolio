@@ -197,9 +197,15 @@ class visualize_alphavantage():
         # df_to_plot.plot()
 
         # plt.show()
-        df_to_plot.iplot(kind="bar", x="date", y=stock_symbol_list, title=f"Datetime plot '{stock_symbol_list}' from alphavantage", xTitle="date", yTitle="dividenden", asFigure=True).write_html(f"../data/vis/{stock_symbol_list}_alpha_dividenden.html")
+        df_to_plot.iplot(kind="bar", x="date", y=stock_symbol_list, title=f"Datetime plot '{stock_symbol_list}' from alphavantage", xTitle="date", yTitle="dividenden", asFigure=True).write_html(f"../data/vis/dividend_data/{stock_symbol_list}_alpha_dividenden.html")
     
         pass
+
+    def visualize_all_dividend_data(self):
+        for x in self.preproccessed_data.columns:
+            if(x == "information" or x == "index" or x == "index_extracted" or x == "random_counter" or x == "date" or x == "variable" or x == "value" or x == "symbol"):
+                continue
+            self.visualize_dividenden_data([x])
 
 class visualize_combined_data():
      
@@ -283,16 +289,28 @@ class visualize_result_data():
         self.result_data.iplot(kind="scatter", x="rank_growth", y="money_made", mode="markers", xTitle="Rank growth", yTitle="Money made", title="Money made vs rank growth", asFigure=True).write_html(f"../data/vis/results_rank_growth_vs_money_made.html")
         self.result_data.iplot(kind="scatter", x="rank_stability", y="money_made", mode="markers", xTitle="Rank stability", yTitle="Money made", title="Money made vs rank stability", asFigure=True).write_html(f"../data/vis/results_rank_stability_vs_money_made.html")
         self.result_data.iplot(kind="scatter", x="rank_yield", y="money_made", mode="markers", xTitle="Rank yield", yTitle="Money made", title="Money made vs rank yield", asFigure=True).write_html(f"../data/vis/results_rank_yield_vs_money_made.html")
+        self.result_data.iplot(kind="scatter", x="yield", y="money_made", mode="markers", xTitle="Yield", yTitle="Money made", title="Money made vs yield", asFigure=True).write_html(f"../data/vis/results_yield_vs_money_made.html")
+        self.result_data.iplot(kind="scatter", x="growth", y="money_made", mode="markers", xTitle="Growth", yTitle="Money made", title="Money made vs growth", asFigure=True).write_html(f"../data/vis/results_growth_vs_money_made.html")
+        self.result_data.iplot(kind="scatter", x="stability", y="money_made", mode="markers", xTitle="Stability", yTitle="Money made", title="Money made vs stability", asFigure=True).write_html(f"../data/vis/results_stability_vs_money_made.html")
 
 
     def visualize_vs_msiw(self, combined_data: pd.DataFrame):
-
+        """
+        This function is used to compare all the data from the result data with the msci world stock.
+        """
 
         # thats a little bit anyoing because, you need to know if the data is there on the time
         # whats the time you ask?
-        # well its 1990 + 12 - 6 = 
-        year_selection = 8
-        look_backward_years = 7
+        # well its 1990 + 10 + 7 + x = 2007
+        # so we look at the portfolio from 2007 to x years in the future
+        # but important is that i dont show what happens if we sell after 1 year but after 4 years the first time
+        # so the first future date is 2011
+        # that is only an example and i want to try more than this
+        # and obviously i want to compare data from the msi world with the same data as the portfolio
+        # so the missing point is add the future date to the msci world stock
+
+        year_selection = 11
+        look_backward_years = 6
 
         local_single_stock_checker = bl.single_stock_check()
 
@@ -302,32 +320,40 @@ class visualize_result_data():
         # for example 1990 + 15 + 6 + 3 = 2014 is the first year
 
         # msic_world_stock = msciw_data[msciw_data["information"].isin(["alpha_close"])]
-        start_date = self.result_data[(self.result_data["time_span"] == year_selection)& (self.result_data["look_backward_years"] == look_backward_years)].groupby("future_date").first()["middle_date"].iloc[0]
+        start_date = self.result_data[(self.result_data["time_span"] == year_selection)& (self.result_data["look_backward_years"] == look_backward_years)].groupby("future_date").first()["start_date"].iloc[0]
         # print(start_date, msciw_data.reset_index().columns)
         # print(msic_world_stock.reset_index().head(50))
-        
+        print(start_date)
         # print(start_date)
         # print(local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date), look_foward_years=10, symbol="MSCI", df_combined=combined_data, money_invested=100))
- 
+
+        middle_date = pd.to_datetime(start_date) + timedelta(days = 365 * look_backward_years)
+        start_investment = 100
 
         # works but adds 10 years idk why
         # print("hi", start_date, pd.to_datetime(start_date) + timedelta(days = 365 * 10))
-        print(pd.to_datetime(start_date) + timedelta(days = 365 * 4))
-        msic_money_made = pd.DataFrame([{"money_made": local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date), look_foward_years=x, symbol="MSCI", df_combined=combined_data, money_invested=100).iloc[-1]["money"], "date": pd.to_datetime(start_date) + timedelta(days = 365 * x)} for x in range(3, 11)])
+        # print(pd.to_datetime(start_date) + timedelta(days = 365 * 4))
+        list_msciworld = [{"money_made": local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date) + timedelta(days = 365 * (look_backward_years)), look_foward_years=x, symbol="MSCI", df_combined=combined_data, money_invested=100).iloc[-1]["money"], "date": pd.to_datetime(start_date)+ timedelta(days = 365 * look_backward_years) + timedelta(days = 365 * x)} for x in range(3, 11)]
+        list_msciworld = list_msciworld + [{"money_made":start_investment, "date": middle_date}]
 
-        print(msic_money_made)
+        msic_money_made = pd.DataFrame(list_msciworld).sort_values(by="date")
+        
+
+        # print(msic_money_made)
 
         portfolio_progression = self.result_data[(self.result_data["time_span"] == year_selection)& (self.result_data["look_backward_years"] == look_backward_years)].groupby("future_date").mean(numeric_only=True).reset_index()[["future_date", "money_made"]]
         portfolio_progression["future_date"] = pd.to_datetime(portfolio_progression["future_date"])
+
+        portfolio_progression = pd.concat([portfolio_progression, pd.DataFrame([{"money_made":start_investment, "future_date": middle_date}])]).sort_values(by="future_date")
         
         
 
 
 
-        print(portfolio_progression.columns)
-        print(portfolio_progression)
+        # print(portfolio_progression.columns)
+        # print(portfolio_progression)
 
-        print(msic_money_made.head(10))
+        # print(msic_money_made.head(10))
         fig = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
 
         close_plot = go.Scatter(mode="lines", x=portfolio_progression["future_date"], y=portfolio_progression["money_made"], name=f"close from portfolio {year_selection+1990} to {year_selection+ 1990 + look_backward_years} years", line=dict(color='blue'))
@@ -336,9 +362,10 @@ class visualize_result_data():
         fig.add_trace(close_plot, secondary_y=False)
         fig.add_trace(msci_plot, secondary_y=False)
         # add title to fig
-        fig.update_layout(title=f"msci world vs portfolio from {year_selection+1990} to {year_selection+ 1990 + look_backward_years} years")
+        # its from (1990 + 10 + 7 + 3) = 2010 to (1990 + 10 + 7 + 3 + 7) = 2010
+        fig.update_layout(title=f"msci world vs portfolio from {year_selection+look_backward_years+1990 + 3} to {year_selection+ 1990 + 3 + 7 + look_backward_years} years")
         
-        fig.write_html(f"../data/vis/msci_world_vs_portfolio_{year_selection+1990}_{year_selection+ 1990 + look_backward_years}.html")
+        fig.write_html(f"../data/vis/msci_world_vs_portfolio_{year_selection+ look_backward_years+ 1990 + 3}_{year_selection+ 1990 + look_backward_years + 3 + 7}.html")
 
     def visualize_histogram_plots(self):
         self.result_data[["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/histogram_money_made.html")
@@ -382,15 +409,87 @@ class visualize_result_data():
 
 
 
-    def visualize_per_iteration(self):
+
+    def visualize_symbol_vs_money_made(self):
+
+        # histogram but with timespan selected before
+        
         for x in range(1, 30):
+            if self.result_data[(self.result_data["time_span"] == x)].empty:
+                        continue
+            
+            self.result_data[(self.result_data["time_span"] == x)][["money_made", "symbol"]].groupby("symbol").mean().reset_index().iplot(kind="bar", y="money_made",x="symbol", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_timespan_{1990+x}_combined.html")
+
+
             for y in range(3, 11):
+                if self.result_data[(self.result_data["time_span"] == x)
+                                        & (self.result_data["look_backward_years"] == y)].empty:
+                        continue
+                
+                to_plot = self.result_data[(self.result_data["time_span"] == x)
+                                        & (self.result_data["look_backward_years"] == y)][["money_made", "symbol", "all"]].groupby("symbol").mean().reset_index().sort_values(by="all", ascending=False)
+                
+                fig = go.Figure()
+
+                fig.add_trace(go.Bar(x=to_plot["symbol"], y=to_plot["money_made"], hovertext=to_plot["all"] ))
+                
+                fig.update_layout(title=f"Money made vs symbol timespan {1990+x} look forward {y}")
+                fig.write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_timespan_{1990+x}_look_forward{y}_combined.html")
+
+                # self.result_data[(self.result_data["time_span"] == x)
+                #                         & (self.result_data["look_backward_years"] == y)].iplot(kind="bar", y="money_made",x="symbol",xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_timespan_{1990+x}_look_forward{y}_combined.html")
+                
+                
                 for z in range(3, 11):
                     if self.result_data[(self.result_data["time_span"] == x)
                                         & (self.result_data["look_backward_years"] == y)
                                         & (self.result_data["look_forward_years"] == z) ].empty:
                         continue
 
-                    self.result_data[(self.result_data["time_span"] == x)
-                                        & (self.result_data["look_backward_years"] == y)
-                                        & (self.result_data["look_forward_years"] == z) ].iplot(kind="bar", x="symbol",y="money_made" ,xTitle="ticker symbol", yTitle="money made", title="Money made by symbol", asFigure=True).write_html(f"../data/vis/iteration_stuff/money_made_timespan_{1990+x}_look_forward{y}_look_backwards{z}.html")
+                    # self.result_data[(self.result_data["time_span"] == x)
+                    #                     & (self.result_data["look_backward_years"] == y)
+                    #                     & (self.result_data["look_forward_years"] == z) ][["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/histogram_money_made_timespan_{1990+x}_look_forward{y}_look_backwards{z}.html")
+        
+
+    def visualize_portfolios_with_same_middledate(self):
+            """
+            
+            """
+
+            
+            for y in range(11, 30):
+                middle_year = y
+                
+                to_plot = pd.DataFrame()
+                for x in range(3,11):
+                    
+                    temp_year_selection = middle_year-x
+                    temp_look_backward_years = x
+
+                    start_date = self.result_data[(self.result_data["time_span"] == temp_year_selection)& (self.result_data["look_backward_years"] == temp_look_backward_years)].groupby("future_date").first()["start_date"]
+                    if(start_date.empty):
+                        continue
+                    start_date = start_date.iloc[0]
+
+                    # middle_date = pd.to_datetime(start_date) + timedelta(days = 365 * temp_look_backward_years)
+                    # start_investment = 100
+
+
+                    portfolio_progression = self.result_data[(self.result_data["time_span"] == temp_year_selection)& (self.result_data["look_backward_years"] == temp_look_backward_years)].groupby("future_date").mean(numeric_only=True).reset_index()[["future_date", "money_made"]]
+                    portfolio_progression["future_date"] = pd.to_datetime(portfolio_progression["future_date"])
+                    portfolio_progression["temp_look_backward_years"] = temp_look_backward_years
+                    # portfolio_progression = pd.concat([portfolio_progression, pd.DataFrame([{"money_made":start_investment, "future_date": middle_date, "temp_look_backward_years": temp_look_backward_years}])]).sort_values(by="future_date")
+
+                    to_plot = pd.concat([to_plot, portfolio_progression])
+
+                to_plot = to_plot.pivot_table(index="future_date", columns="temp_look_backward_years", values="money_made", aggfunc="mean").reset_index()
+                
+
+
+                fig = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
+                fig.update_layout(title=f"all portfolios with same middle date")
+                for x in to_plot.columns:
+                    if x == "future_date":
+                        continue
+                    fig.add_trace(go.Scatter(mode="lines", x=to_plot["future_date"], y=to_plot[x], name=f"portfolio with {x} years looked back, date in the middle is {1990 + middle_year}"), secondary_y=False)
+                fig.write_html(f"../data/vis/portfolios_with_same_middle_date{1990+middle_year}.html")

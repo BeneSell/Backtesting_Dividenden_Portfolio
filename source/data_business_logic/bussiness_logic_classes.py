@@ -250,6 +250,7 @@ class single_stock_check():
             "dividend": str(1 + r_anual_interest_rate),
             "dividend_money": str(r_money * (r_anual_interest_rate)),
             "date": s_months - r_months
+            # "date_time": 
         })
 
         if r_months == 1:
