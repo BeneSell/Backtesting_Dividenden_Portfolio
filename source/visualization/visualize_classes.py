@@ -411,7 +411,9 @@ class visualize_result_data():
 
 
     def visualize_symbol_vs_money_made(self):
-
+        """
+        Actually it is really bad because of variable middle dates!
+        """
         # histogram but with timespan selected before
         
         for x in range(1, 30):
@@ -433,7 +435,7 @@ class visualize_result_data():
 
                 fig.add_trace(go.Bar(x=to_plot["symbol"], y=to_plot["money_made"], hovertext=to_plot["all"] ))
                 
-                fig.update_layout(title=f"Money made vs symbol timespan {1990+x} look forward {y}")
+                fig.update_layout(title=f"Money made vs symbol timespan  Start_date: {1990+x}, Middle_date {1990+x+y} Future_date combined from {1990+x+y + 3} to {1990+x+y+10} years")
                 fig.write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_timespan_{1990+x}_look_forward{y}_combined.html")
 
                 # self.result_data[(self.result_data["time_span"] == x)
@@ -450,6 +452,79 @@ class visualize_result_data():
                     #                     & (self.result_data["look_backward_years"] == y)
                     #                     & (self.result_data["look_forward_years"] == z) ][["money_made"]].iplot(kind="histogram", x="money_made", xTitle="Money made", yTitle="Frequency", title="Money made histogram", asFigure=True).write_html(f"../data/vis/iteration_stuff/histogram_money_made_timespan_{1990+x}_look_forward{y}_look_backwards{z}.html")
         
+
+    def visualize_symbol_vs_money_made_same_middle_date(self):
+
+
+        for y in range(11, 30):
+            middle_year = y
+            
+            for x in range(3,11):
+                
+                temp_year_selection = middle_year-x
+                temp_look_backward_years = x
+
+                start_date = self.result_data[(self.result_data["time_span"] == temp_year_selection)& (self.result_data["look_backward_years"] == temp_look_backward_years)].groupby("future_date").first()["start_date"]
+                if(start_date.empty):
+                    continue
+                start_date = start_date.iloc[0]
+
+                # middle_date = pd.to_datetime(start_date) + timedelta(days = 365 * temp_look_backward_years)
+                # start_investment = 100
+
+                portfolio_progression = self.result_data[(self.result_data["time_span"] == temp_year_selection)& (self.result_data["look_backward_years"] == temp_look_backward_years)][["future_date", "money_made", "all", "symbol", "look_forward_years", "middle_date", "start_date"]]
+                portfolio_progression["future_date"] = pd.to_datetime(portfolio_progression["future_date"])
+                portfolio_progression["temp_look_backward_years"] = temp_look_backward_years
+
+                # color_code the portfolio_progression["future_date"]
+                
+                print(portfolio_progression.sort_values(by="future_date"))
+                input()
+                
+
+                fig = make_subplots(specs=[[{"secondary_y": True}]])
+                fig.update_layout(title=f"Money made vs symbol, Year the Investment started: {1990+temp_year_selection + temp_look_backward_years}")
+                for z in range(3,11):
+                    
+                    to_plot = portfolio_progression[portfolio_progression["look_forward_years"] == z]
+
+                    
+                    
+                    bar_chart = go.Bar(x=to_plot["symbol"], y=to_plot["money_made"], hovertext=to_plot["future_date"], name=f"Sold end of year:{1990+temp_year_selection + temp_look_backward_years + z}")
+                    fig.add_trace(bar_chart, secondary_y=False)
+                    
+                    
+                fig.write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_middle_date{1990 + middle_year}.html")
+
+                # portfolio_progression = pd.concat([portfolio_progression, pd.DataFrame([{"money_made":start_investment, "future_date": middle_date, "temp_look_backward_years": temp_look_backward_years}])]).sort_values(by="future_date")
+
+    def visualize_symbol_vs_money_made_same_future_date(self):
+         
+         # save all portfolios which got sold on the same year 
+
+        some_df = self.result_data.copy()
+
+
+        some_df["together"] = (some_df["time_span"] + some_df["look_backward_years"] + some_df["look_forward_years"])
+        
+        for x in range(some_df["together"].min(), some_df["together"].max()):
+            
+            
+            temp_df = some_df[(some_df["together"] == x)].sort_values(by="time_span", ascending=False)
+
+            # if the time invested and the time sold are the same the result is the same so its no need to clutter the plot with the same data
+            temp_df = temp_df.drop_duplicates(subset=["symbol", "money_made"])
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.update_layout(title=f"Money made vs symbol, Year the Investment ended: {1990+x}")
+
+            # combine temp_df[["look_backward_years","look_forward_years", "time_span"] ] with \n
+            temp_df["info"] = "past years: " +  temp_df["look_backward_years"].astype(str) + "\n years invested:" + temp_df["look_forward_years"].astype(str) + "\n start year" + (1990+ temp_df["time_span"]).astype(str)
+                
+            bar_chart = go.Bar(x=temp_df["symbol"], y=temp_df["money_made"], hovertext=temp_df["info"], name=f"Sold end of year:{1990 + x}")
+            fig.add_trace(bar_chart, secondary_y=False)
+            
+                
+            fig.write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_sold_on{1990 + x}.html")
 
     def visualize_portfolios_with_same_middledate(self):
             """

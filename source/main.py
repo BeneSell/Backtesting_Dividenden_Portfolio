@@ -48,13 +48,15 @@ def main():
     vis_alpha = vis.visualize_alphavantage(pre_alpha)
     # vis_alpha.visualize_stock_data(["600983"])
     vis_alpha.visualize_stock_data(["GGP", "MSCI"])
+    vis_alpha.visualize_stock_data(["MO"])
     vis_alpha.visualize_dividenden_data(["T", "XOM", "WBA", "ABBV", "IBM", "MMM", "CAT"])
-    vis_alpha.visualize_all_dividend_data()
+    # vis_alpha.visualize_all_dividend_data()
     # visualize more dividend data
     vis_alpha.visualize_dividenden_data(["COST"])
     vis_alpha.visualize_dividenden_data(["BTU"])
     vis_alpha.visualize_dividenden_data(["TDG"])
     vis_alpha.visualize_stock_as_candlestick("GGP")
+    vis_alpha.visualize_stock_data(["CTAS"])
     # vis_alpha.visualize_dividenden_data(["GGP"])
     vis_alpha.visualize_dividenden_data(["DPZ"])
     vis_fmp = vis.visualize_fmp(pre_fmp)
@@ -71,7 +73,7 @@ def main():
 
     vis_result = vis.visualize_result_data(result_df)
     # vis_result.visualize_histogram_plots()
-    # vis_result.visualize_symbol_vs_money_made()
+    vis_result.visualize_symbol_vs_money_made_same_future_date()
     # vis_result.visualize_portfolios_with_same_middledate()
     # vis_result.visualize_scatter_plots()
     # vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
@@ -81,7 +83,8 @@ def main():
     # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
     # try: 
 
-    # print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2008-12-26"), look_foward_years=10, symbol="DPZ", df_combined=pre_combine.combined_data, money_invested=100))
+    print("MO")
+    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2007-12-26"), look_foward_years=3, symbol="MO", df_combined=pre_combine.combined_data, money_invested=100))
 
 
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")

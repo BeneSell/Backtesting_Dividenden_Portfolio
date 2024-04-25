@@ -127,3 +127,7 @@ def test_calculate_dividend_stability(setup):
     assert result == 1022450.0
 
     pass
+
+# what happens if a company vanishes
+# what happens if the company has no dividends
+# what happens if the company has no stock prices at the given dates
