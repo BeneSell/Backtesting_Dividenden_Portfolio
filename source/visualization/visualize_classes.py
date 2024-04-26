@@ -337,7 +337,7 @@ class visualize_result_data():
         list_msciworld = [{"money_made": local_single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime(start_date) + timedelta(days = 365 * (look_backward_years)), look_foward_years=x, symbol="MSCI", df_combined=combined_data, money_invested=100).iloc[-1]["money"], "date": pd.to_datetime(start_date)+ timedelta(days = 365 * look_backward_years) + timedelta(days = 365 * x)} for x in range(3, 11)]
         list_msciworld = list_msciworld + [{"money_made":start_investment, "date": middle_date}]
 
-        msic_money_made = pd.DataFrame(list_msciworld).sort_values(by="date")
+        msci_money_made = pd.DataFrame(list_msciworld).sort_values(by="date")
         
 
         # print(msic_money_made)
@@ -358,7 +358,7 @@ class visualize_result_data():
         fig = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
 
         close_plot = go.Scatter(mode="lines", x=portfolio_progression["future_date"], y=portfolio_progression["money_made"], name=f"close from portfolio {year_selection+1990} to {year_selection+ 1990 + look_backward_years} years", line=dict(color='blue'))
-        msci_plot = go.Scatter(mode="lines", x=msic_money_made["date"], y=msic_money_made["money_made"], name=f"msci world stock", line=dict(color='red'))
+        msci_plot = go.Scatter(mode="lines", x=msci_money_made["date"], y=msci_money_made["money_made"], name=f"msci world stock", line=dict(color='red'))
 
         fig.add_trace(close_plot, secondary_y=False)
         fig.add_trace(msci_plot, secondary_y=False)

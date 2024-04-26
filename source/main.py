@@ -1,12 +1,21 @@
+"""
+This is the execution Module, and shouldn't be used for anything
+else than calling other functions and classes
+"""
+
+import json
+# import datetime
+
+# import data_download.download_classes as dl
+
+
+
 import data_preprocessing.preproccess_classes as pre
 import visualization.visualize_classes as vis
 import data_business_logic.bussiness_logic_classes as bl
 
 
 import pandas as pd
-import data_download.download_classes as dl
-import json
-import datetime
 
 
 
@@ -15,6 +24,9 @@ import datetime
 # dl.download_fmp("").download_fmp_dividend_from_local()
 
 def main():
+    """ 
+    This is the main function of the project. It is used to call all the other functions and classes
+    """
     raw_data_fmp_dividends = {}
     raw_data_fmp_stock_value = {}
 
@@ -22,13 +34,15 @@ def main():
 
 
 
-    with open('../data/stock_infos/raw_data_fmp_from_local_div.json', "r") as json_file:
+    with open('../data/stock_infos/raw_data_fmp_from_local_div.json',\
+              "r", encoding="utf-8") as json_file:
         raw_data_fmp_dividends = json.load(json_file)
 
-    with open('../data/stock_infos/raw_data_fmp_stock_value.json', "r") as json_file:
+    with open('../data/stock_infos/raw_data_fmp_stock_value.json', \
+              "r", encoding="utf-8") as json_file:
         raw_data_fmp_stock_value = json.load(json_file)
 
-    with open('../data/stock_infos/result.json') as json_file:
+    with open('../data/stock_infos/result.json', encoding="utf-8") as json_file:
         data = json_file.read()
         raw_data_alpha = json.loads(data)
 
@@ -43,7 +57,7 @@ def main():
 
     pre_combine = pre.preproccessing_combined_data(pre_fmp, pre_alpha)
 
-    
+
 
     vis_alpha = vis.visualize_alphavantage(pre_alpha)
     # vis_alpha.visualize_stock_data(["600983"])
@@ -81,23 +95,36 @@ def main():
     # vis_result.visualize_per_iteration()
 
     # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
-    # print(f"money after 24 months: {bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24)}")
-    # try: 
+    print("money after 24 months:",
+            bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24))
+    # try:
 
     print("MO")
-    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2007-12-26"), look_foward_years=3, symbol="MO", df_combined=pre_combine.combined_data, money_invested=100))
+    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2007-12-26"),
+                                                          look_foward_years=3,
+                                                          symbol="MO",
+                                                          df_combined=pre_combine.combined_data,
+                                                          money_invested=100))
 
 
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
-    bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2008-12-26"), 10, "DPZ").to_csv("../data/results/DPZ_dividends.csv")
+    bl.single_stock_check().get_dividends(pre_combine.combined_data,
+                                          pd.to_datetime("2008-12-26"),
+                                          10,
+                                          "DPZ")\
+                                            .to_csv("../data/results/DPZ_dividends.csv")
 
-    # apple_dividends = bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
+    # apple_dividends = bl.single_stock_check()\
+    # .get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
 
     # stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
-    
-    # print(bl.bruteforce_checks(pre_combine.combined_data).test_a_portfolio(stock_results.sort_values(by="all", ascending=True).iloc[:30]))
 
-    
+    # print(bl.bruteforce_checks(pre_combine.combined_data)\
+    #                            .test_a_portfolio(stock_results\
+    #                            .sort_values(by="all", ascending=True)\
+    #                            .iloc[:30]))
+
+
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])
 
     # print(bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan())
@@ -110,11 +137,14 @@ def main():
     # bl.single_stock_check().calculate_dividend_stability(apple_dividends)
     # bl.single_stock_check().calculate_dividend_yield(apple_dividends)
     # except Exception as e:
-    #     print(f"No dividends found in this time period  {pd.to_datetime('2001-12-31')} - {pd.to_datetime('2s001-12-31') + datetime.timedelta(days=365 * 4)}")
+    # print("No dividends found in this time period"\
+    #     f"{pd.to_datetime('2001-12-31')} - "\
+    #     f"{pd.to_datetime('2s001-12-31') + datetime.timedelta(days=365 * 4)}")
     #     print("")
     #     print(e)
 
-    # bl.single_stock_check().get_dividends(pre_combine.combined_data, pd.to_datetime("2005-03-01"), 1, "AAPL")
+    # bl.single_stock_check().get_dividends(pre_combine.combined_data,\
+    #                                       pd.to_datetime("2005-03-01"), 1, "AAPL")
 
 
     # print(pd.Period("03.2010"))
@@ -131,4 +161,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    pass
