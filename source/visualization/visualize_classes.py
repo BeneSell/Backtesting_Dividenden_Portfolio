@@ -5,6 +5,7 @@ import data_preprocessing.preproccess_classes as pre
 import matplotlib.pyplot as plt
 from plotly.offline import iplot
 from plotly.subplots import make_subplots
+import plotly.express as px
 import plotly.graph_objects as go
 import data_business_logic.bussiness_logic_classes as bl
 
@@ -526,6 +527,38 @@ class visualize_result_data():
                 
             fig.write_html(f"../data/vis/iteration_stuff/symbol_vs_money_made_sold_on{1990 + x}.html")
 
+    def visualize_portfolio_vs_money_made_same_future_date(self):
+         
+         # save all portfolios which got sold on the same year 
+
+        some_df = self.result_data.copy()
+
+
+        some_df["together"] = (some_df["time_span"] + some_df["look_backward_years"] + some_df["look_forward_years"])
+        
+        for x in range(some_df["together"].min(), some_df["together"].max()):
+            
+            
+            temp_df = some_df[(some_df["together"] == x)].sort_values(by="time_span", ascending=False)
+
+            # if the time invested and the time sold are the same the result is the same so its no need to clutter the plot with the same data
+            temp_df = temp_df.groupby(by=["time_span", "look_backward_years", "look_forward_years"])["money_made"].mean().reset_index()
+            
+            # fig = make_subplots(specs=[[{"secondary_y": True}]])
+            # fig.update_layout(title=f"Money made vs symbol, Year the Investment ended: {1990+x}")
+
+            # combine temp_df[["look_backward_years","look_forward_years", "time_span"] ] with \n
+            temp_df["info"] = "past years: " +  temp_df["look_backward_years"].astype(str) + "\n years invested:" + temp_df["look_forward_years"].astype(str) + "\n start year" + (1990+ temp_df["time_span"]).astype(str)
+            
+            temp_df["time_span_to_show"] = (temp_df["time_span"] + 1990).astype(str)
+            
+
+            fig = px.bar(temp_df, x="time_span_to_show", y="money_made",color="look_backward_years", hover_name="info", title=f"Sold end of year:{1990 + x}", color_continuous_scale=px.colors.sequential.Viridis, barmode="group")
+            
+            
+                
+            fig.write_html(f"../data/vis/iteration_stuff/portfolio_vs_money_made_sold_on{1990 + x}.html")
+    
     def visualize_portfolios_with_same_middledate(self):
             """
             

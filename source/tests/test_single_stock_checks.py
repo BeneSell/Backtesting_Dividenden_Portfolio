@@ -62,6 +62,19 @@ def test_check_money_made_by_div(setup):
 
 
 # TODO error when no stock on the given dates 
+def test_check_money_made_by_div_sad_path(setup):
+    single_stock_checker, df_combined = setup
+
+    result = single_stock_checker.check_money_made_by_div(start_date=pd.to_datetime("2021-01-01"), look_foward_years=15, symbol="TEST", df_combined=df_combined, money_invested=100)
+    print(df_combined)
+    print(result)
+    assert result["money"].astype(float).iloc[0] == 103.0
+
+    pass
+
+
+
+
 def test_check_for_increased_stock(setup):
     single_stock_checker, df_combined = setup
 

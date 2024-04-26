@@ -62,6 +62,7 @@ def main():
     vis_fmp = vis.visualize_fmp(pre_fmp)
     vis_fmp.visualize_dividenden_data("ADBE")
     vis_fmp.visualize_stock_as_candlestick("AAPL")
+    vis_fmp.visualize_stock_data("AAPL")
 
 
 
@@ -73,7 +74,7 @@ def main():
 
     vis_result = vis.visualize_result_data(result_df)
     # vis_result.visualize_histogram_plots()
-    vis_result.visualize_symbol_vs_money_made_same_future_date()
+    vis_result.visualize_portfolio_vs_money_made_same_future_date()
     # vis_result.visualize_portfolios_with_same_middledate()
     # vis_result.visualize_scatter_plots()
     # vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
