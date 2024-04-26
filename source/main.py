@@ -59,7 +59,7 @@ def main():
 
 
 
-    vis_alpha = vis.visualize_alphavantage(pre_alpha)
+    vis_alpha = vis.VisualizeAlphavantage(pre_alpha)
     # vis_alpha.visualize_stock_data(["600983"])
     vis_alpha.visualize_stock_data(["GGP", "MSCI"])
     vis_alpha.visualize_stock_data(["MO"])
@@ -73,7 +73,7 @@ def main():
     vis_alpha.visualize_stock_data(["CTAS"])
     # vis_alpha.visualize_dividenden_data(["GGP"])
     vis_alpha.visualize_dividenden_data(["DPZ"])
-    vis_fmp = vis.visualize_fmp(pre_fmp)
+    vis_fmp = vis.VisualizeFMP(pre_fmp)
     vis_fmp.visualize_dividenden_data("ADBE")
     vis_fmp.visualize_stock_as_candlestick("AAPL")
     vis_fmp.visualize_stock_data("AAPL")
@@ -81,12 +81,12 @@ def main():
 
 
 
-    vis_combined = vis.visualize_combined_data(pre_combine)
+    vis_combined = vis.VisualizeCombinedData(pre_combine)
     vis_combined.fmp_vs_alpha("AAPL")
     vis_combined.fmp_stock_vs_fmp_dividend("GGP")
     vis_combined.fmp_stock_vs_fmp_dividend("DPZ")
 
-    vis_result = vis.visualize_result_data(result_df)
+    vis_result = vis.VisualizeResultData(result_df)
     # vis_result.visualize_histogram_plots()
     vis_result.visualize_portfolio_vs_money_made_same_future_date()
     # vis_result.visualize_portfolios_with_same_middledate()
@@ -94,13 +94,13 @@ def main():
     # vis_result.visualize_vs_msiw(combined_data=pre_combine.combined_data)
     # vis_result.visualize_per_iteration()
 
-    # bl.single_stock_check().check_for_increased_stock(pre_combine.combined_data)
+    # bl.SingleStockCheck().check_for_increased_stock(pre_combine.combined_data)
     print("money after 24 months:",
-            bl.single_stock_check().compound_interest_calc_recursive(15000, 24, 24))
+            bl.SingleStockCheck().compound_interest_calc_recursive(15000, 24, 24))
     # try:
 
     print("MO")
-    print(bl.single_stock_check().check_money_made_by_div(start_date=pd.to_datetime("2007-12-26"),
+    print(bl.SingleStockCheck().check_money_made_by_div(start_date=pd.to_datetime("2007-12-26"),
                                                           look_foward_years=3,
                                                           symbol="MO",
                                                           df_combined=pre_combine.combined_data,
@@ -108,18 +108,18 @@ def main():
 
 
     # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
-    bl.single_stock_check().get_dividends(pre_combine.combined_data,
+    bl.SingleStockCheck().get_dividends(pre_combine.combined_data,
                                           pd.to_datetime("2008-12-26"),
                                           10,
                                           "DPZ")\
                                             .to_csv("../data/results/DPZ_dividends.csv")
 
-    # apple_dividends = bl.single_stock_check()\
+    # apple_dividends = bl.SingleStockCheck()\
     # .get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
 
-    # stock_results = bl.bruteforce_checks(pre_combine.combined_data).check_all_stocks()
+    # stock_results = bl.BruteforceChecks(pre_combine.combined_data).check_all_stocks()
 
-    # print(bl.bruteforce_checks(pre_combine.combined_data)\
+    # print(bl.BruteforceChecks(pre_combine.combined_data)\
     #                            .test_a_portfolio(stock_results\
     #                            .sort_values(by="all", ascending=True)\
     #                            .iloc[:30]))
@@ -127,15 +127,15 @@ def main():
 
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])
 
-    # print(bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan())
+    # print(bl.BruteforceChecks(pre_combine.combined_data).check_along_time_and_timespan())
 
-    # result = bl.bruteforce_checks(pre_combine.combined_data).check_along_time_and_timespan()
+    # result = bl.BruteforceChecks(pre_combine.combined_data).check_along_time_and_timespan()
     # result.to_csv("../data/results/bruteforce_results.csv")
 
 
-    # bl.single_stock_check().calculate_dividend_growth(apple_dividends)
-    # bl.single_stock_check().calculate_dividend_stability(apple_dividends)
-    # bl.single_stock_check().calculate_dividend_yield(apple_dividends)
+    # bl.SingleStockCheck().calculate_dividend_growth(apple_dividends)
+    # bl.SingleStockCheck().calculate_dividend_stability(apple_dividends)
+    # bl.SingleStockCheck().calculate_dividend_yield(apple_dividends)
     # except Exception as e:
     # print("No dividends found in this time period"\
     #     f"{pd.to_datetime('2001-12-31')} - "\
@@ -143,7 +143,7 @@ def main():
     #     print("")
     #     print(e)
 
-    # bl.single_stock_check().get_dividends(pre_combine.combined_data,\
+    # bl.SingleStockCheck().get_dividends(pre_combine.combined_data,\
     #                                       pd.to_datetime("2005-03-01"), 1, "AAPL")
 
 
