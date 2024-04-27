@@ -1,10 +1,12 @@
 secret_file.json
 
 data
-__pychace__
+*__pychace__*
 
 *.code
 *.pyc
 config.json
 /source/media
 support.ipynb
+*media*
+.pytest_cache
