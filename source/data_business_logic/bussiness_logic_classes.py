@@ -391,15 +391,6 @@ class SingleStockCheck():
 
         return dividend_intervals.var()
 
-    def calculate_dividend_continuity(self, dividends_of_stock):
-        """
-        im gonna rework this function in a day or two
-        """
-        # to year period with sum
-        dividends_of_stock["years"] = dividends_of_stock["date"].dt.to_period("Y")
-
-        return dividend_intervals.var()
-
 
 class BruteforceChecks():
     """
