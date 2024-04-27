@@ -83,8 +83,8 @@ def main():
 
     vis_combined = vis.VisualizeCombinedData(pre_combine)
     vis_combined.fmp_vs_alpha("AAPL")
-    vis_combined.fmp_stock_vs_fmp_dividend("GGP")
-    vis_combined.fmp_stock_vs_fmp_dividend("DPZ")
+    vis_combined.alpha_stock_vs_alpha_dividend("GGP")
+    vis_combined.alpha_stock_vs_alpha_dividend("DPZ")
 
     vis_result = vis.VisualizeResultData(result_df)
     # vis_result.visualize_histogram_plots()
