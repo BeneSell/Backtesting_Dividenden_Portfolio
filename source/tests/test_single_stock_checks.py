@@ -10,7 +10,7 @@ import datetime as dt
 @pytest.fixture
 def setup():
     # Setup code that needs to run before each test
-    single_stock_checker = bl.single_stock_check()
+    single_stock_checker = bl.SingleStockCheck()
 
     data_combined = [{'date': pd.to_datetime('2021-01-01').to_period("M"), "information": "alpha_close", "TEST": 2.0},
                      {'date': pd.to_datetime('2021-01-01').to_period("M"), "information": "alpha_dividend", "TEST": 2.0},
@@ -85,7 +85,7 @@ def test_check_for_increased_stock(setup):
     pass
 
 def test_compound_interest_calc_recursive():
-    single_stock_checker = bl.single_stock_check()
+    single_stock_checker = bl.SingleStockCheck()
 
     years = 2
     result = single_stock_checker.compound_interest_calc_recursive(100, years, years, 0.04)
