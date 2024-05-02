@@ -30,7 +30,6 @@ class StrategieDataInterface:
         # get the column with the stock_name
         return row[stock_name]
 
-   
     def get_dividends(
         self,
         df_combined: pd.DataFrame,

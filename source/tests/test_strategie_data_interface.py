@@ -1,4 +1,3 @@
-
 import pytest
 
 # Import the module(s) you want to test
@@ -6,9 +5,7 @@ import pytest
 import data_business_logic.strategie_data_interface as str_data
 
 
-
 import pandas as pd
-from datetime import timedelta
 
 
 # Fixture(s) (optional)
@@ -73,13 +70,13 @@ def setup_fixture():
     df_combined = pd.DataFrame(data_combined)
     yield calc_data, df_combined
     # Teardown code that needs to run after each test
+
+
 # Test cases
 def test_invest_on_date(setup):
     calc_data, df_combined = setup
 
-    result = calc_data.invest_on_date(
-        pd.to_datetime("2021-01-01"), "TEST", df_combined
-    )
+    result = calc_data.invest_on_date(pd.to_datetime("2021-01-01"), "TEST", df_combined)
     # print(df_combined)
     # print(result)
     assert result.iloc[0] == 2.0
@@ -155,9 +152,7 @@ def test_compound_interest_calc_recursive(setup):
     calc_data, df_combined = setup
 
     years = 2
-    result = calc_data.compound_interest_calc_recursive(
-        100, years, years, 0.04
-    )
+    result = calc_data.compound_interest_calc_recursive(100, years, years, 0.04)
     print(result)
 
     calculate_by_myself = 100 * 1.04**years

@@ -76,7 +76,7 @@ def setup_fixture():
 
 
 def test_difference_between_consecutive_years(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -93,7 +93,7 @@ def test_difference_between_consecutive_years(setup):
 
 
 def test_calculate_dividend_continuity_x_years_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -102,15 +102,13 @@ def test_calculate_dividend_continuity_x_years_filter(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
-    result = calc_indikator.calculate_dividend_continuity_x_years_filter(
-        year_dif, 2
-    )
+    result = calc_indikator.calculate_dividend_continuity_x_years_filter(year_dif, 2)
 
     assert result
 
 
 def test_calculate_dividend_continuity_x_years_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -119,15 +117,13 @@ def test_calculate_dividend_continuity_x_years_calc_numb(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
-    result = calc_indikator.calculate_dividend_continuity_x_years_calc_numb(
-        year_dif
-    )
+    result = calc_indikator.calculate_dividend_continuity_x_years_calc_numb(year_dif)
 
     assert result == 2
 
 
 def test_calculate_dividend_continuity_no_div_reductions_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -136,17 +132,15 @@ def test_calculate_dividend_continuity_no_div_reductions_filter(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
-    result = (
-        calc_indikator.calculate_dividend_continuity_no_div_reductions_filter(
-            year_dif
-        )
+    result = calc_indikator.calculate_dividend_continuity_no_div_reductions_filter(
+        year_dif
     )
 
     assert result
 
 
 def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -155,10 +149,8 @@ def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
-    result = (
-        calc_indikator.calculate_dividend_continuity_no_div_reductions_calc_numb(
-            year_dif
-        )
+    result = calc_indikator.calculate_dividend_continuity_no_div_reductions_calc_numb(
+        year_dif
     )
 
     assert result == 2
@@ -168,7 +160,7 @@ def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):
 
 
 def test_calculate_dividend_growth_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -183,7 +175,7 @@ def test_calculate_dividend_growth_filter(setup):
 
 
 def test_calculate_dividend_growth_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -198,7 +190,7 @@ def test_calculate_dividend_growth_calc_numb(setup):
 
 
 def test_calculate_dividend_growth_indikative_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -213,7 +205,7 @@ def test_calculate_dividend_growth_indikative_filter(setup):
 
 
 def test_calculate_dividend_growth_indikative_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -222,9 +214,7 @@ def test_calculate_dividend_growth_indikative_calc_numb(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
-    result = calc_indikator.calculate_dividend_growth_indikative_calc_numb(
-        year_dif
-    )
+    result = calc_indikator.calculate_dividend_growth_indikative_calc_numb(year_dif)
 
     assert result == -4
 
@@ -233,7 +223,7 @@ def test_calculate_dividend_growth_indikative_calc_numb(setup):
 
 
 def test_calculate_dividend_yield_indikative_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -247,7 +237,7 @@ def test_calculate_dividend_yield_indikative_filter(setup):
 
 
 def test_calculate_dividend_yield_indikative_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -261,7 +251,7 @@ def test_calculate_dividend_yield_indikative_calc_numb(setup):
 
 
 def test_calculate_dividend_yield_historic_filter(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"
@@ -275,7 +265,7 @@ def test_calculate_dividend_yield_historic_filter(setup):
 
 
 def test_calculate_dividend_yield_historic_calc_numb(setup):
-    calc_indikator, calc_data ,df_combined = setup
+    calc_indikator, calc_data, df_combined = setup
 
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 6.0, "TEST"

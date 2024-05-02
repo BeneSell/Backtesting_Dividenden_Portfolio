@@ -11,7 +11,10 @@ import json
 
 import pandas as pd
 
-import data_business_logic.bussiness_logic_classes as bl
+import data_business_logic.strategie_data_interface as str_data
+import data_business_logic.startegie_calc_indikator as str_calc
+import data_business_logic.strategie_execution as str_exec
+
 import data_preprocessing.preproccess_classes as pre
 import visualization.visualize_preproccesed_data as vis_pre
 import visualization.visualize_result_data as vis_results_package
@@ -92,13 +95,13 @@ def main():
     # bl.SingleStockCheck().check_for_increased_stock(pre_combine.combined_data)
     print(
         "money after 24 months:",
-        bl.SingleStockCheck().compound_interest_calc_recursive(15000, 24, 24),
+        str_data.StrategieDataInterface().compound_interest_calc_recursive(15000, 24, 24),
     )
     # try:
 
     print("MO")
     print(
-        bl.SingleStockCheck().check_money_made_by_div(
+        str_data.StrategieDataInterface().check_money_made_by_div(
             start_date=pd.to_datetime("2007-12-26"),
             look_foward_years=3,
             symbol="MO",
@@ -107,7 +110,7 @@ def main():
         )
     )
 
-    bl.BruteforceChecks(pre_combine.combined_data).check_all_stocks().to_csv(
+    str_exec.StrategieExecution(pre_combine.combined_data).check_all_stocks().to_csv(
         "../data/results/one_year_result.csv"
     )
 

@@ -10,8 +10,9 @@ import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.express as px
 import plotly.graph_objects as go
-import data_business_logic.bussiness_logic_classes as bl
 
+import data_business_logic.strategie_execution as str_exec
+import data_business_logic.strategie_data_interface as str_data
 
 import cufflinks
 
@@ -127,7 +128,8 @@ class VisualizeResultData:
         # so the missing point is add the future date to the msci world stock
 
         look_backward_years = 12
-        local_single_stock_checker = bl.SingleStockCheck()
+        strategie_execution = str_exec.StrategieExecution(combined_data)
+        calc_data = str_data.StrategieDataInterface()
 
         for year_selection in range(1, 30):
             
@@ -160,7 +162,7 @@ class VisualizeResultData:
 
             list_msciworld = [
                 {
-                    "money_made": local_single_stock_checker.check_money_made_by_div(
+                    "money_made": calc_data.check_money_made_by_div(
                         start_date=pd.to_datetime(start_date)
                         + timedelta(days=365 * (look_backward_years)),
                         look_foward_years=x,
