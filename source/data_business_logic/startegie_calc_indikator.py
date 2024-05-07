@@ -44,6 +44,9 @@ class StrategieCalcIndikator:
             .iloc[1:]
             .reset_index(drop=True)
         )
+        # if there is only one year, there is no difference to calculate
+        if diffs.empty:
+            return pd.DataFrame()
 
         # if the diff is that the year is still consecutive
         # < -1 because it could be zero if the year is the same
@@ -103,7 +106,11 @@ class StrategieCalcIndikator:
         """
         a calc_numb which shows how many years the dividend isnt reduced
         """
-        return (yearly_difference["alpha_dividend"] <= 0.0).count()
+        return (
+            yearly_difference[(yearly_difference["alpha_dividend"] <= 0.0)]
+            .count()
+            .iloc[0]
+        )
 
     # growth
     def calculate_dividend_growth_filter(self, yearly_difference, x_times, x_years=10):

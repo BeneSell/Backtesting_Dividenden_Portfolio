@@ -13,6 +13,7 @@ from plotly.subplots import make_subplots
 
 # import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 
 
 import cufflinks
@@ -230,21 +231,23 @@ class VisualizeAlphavantage:
         # careful attempts with .append() will not work as expected
         stock_symbol_list_with_date = stock_symbol_list + ["date"]
 
-        print(df_with_selected_information)
-        print(stock_symbol_list_with_date)
-
         # .copy() is only to remove the warning from pandas
         df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
 
-        df_to_plot.iplot(
-            kind="bar",
-            x="date",
-            y=stock_symbol_list,
-            title=f"Datetime plot '{stock_symbol_list}' from alphavantage",
-            xTitle="date",
-            yTitle="stock price",
-            asFigure=True,
-        ).write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
+        df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
+
+        # df_to_plot.iplot(
+        #     kind="line",
+        #     x="date",
+        #     y=stock_symbol_list,
+        #     title=f"Datetime plot '{stock_symbol_list}' from alphavantage",
+        #     xTitle="date",
+        #     yTitle="stock price",
+        #     asFigure=True,
+        # ).write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
+        
+        fig = px.line(data_frame=df_to_plot, x="date", y=stock_symbol_list, title="stock price")
+        fig.write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
 
         # df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
         # df_to_plot.set_index("date", inplace=True)

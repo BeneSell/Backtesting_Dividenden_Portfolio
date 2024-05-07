@@ -341,4 +341,13 @@ class PreproccessingCombinedData:
             }
         )
 
+        # df_concat["information"] = df_concat["information"].replace(
+        #     {
+        #         "close": "alpha_close",
+        #         "dividend": "alpha_dividend",
+        #         " dividend amount": "fmp_dividend",
+        #         " adjusted close": "fmp_close",
+        #     }
+        # )
+
         return df_concat

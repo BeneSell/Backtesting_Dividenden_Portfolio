@@ -51,7 +51,7 @@ def setup_fixture():
         {
             "date": pd.to_datetime("2024-01-01").to_period("M"),
             "information": "alpha_dividend",
-            "TEST": 3.0,
+            "TEST": 1.0,
         },
         {
             "date": pd.to_datetime("2025-01-01").to_period("M"),
@@ -85,8 +85,9 @@ def test_difference_between_consecutive_years(setup):
     year_dif = calc_indikator.difference_between_consecutive_years(
         dividends, pd.to_datetime("2021-01-01") + timedelta(days=365 * 6)
     )
+    print(year_dif)
 
-    assert year_dif.count().iloc[0] == 2.0
+    assert year_dif.count().iloc[0] == 1.0
 
 
 # continuity tests

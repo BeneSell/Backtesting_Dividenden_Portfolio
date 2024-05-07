@@ -125,8 +125,12 @@ class StrategieDataInterface:
 
         output = []
 
-        if not dividends.empty:
+        # check if there are dividends
+        # if alpha close is zero my index calculation will fail
 
+        if not dividends.empty and dividends["alpha_close"].count() > 0:
+
+            # check if stock price on start date is not there but there are dividends to check
             if np.isnan(start_stock_price):
                 start_stock_price = dividends["alpha_close"].iloc[0]
 
@@ -139,14 +143,17 @@ class StrategieDataInterface:
                 dividends["alpha_close"],
                 output,
             )
+
             # last dividend stock price
             last_dividend_stock_price = dividends["alpha_close"].iloc[-1]
             last_money_made = output[-1]["money"]
             current_stock_price = output[-1]["current stock price"]
+            summed_dividend_money = output[-1]["summed_dividend_money"]
         else:
             last_dividend_stock_price = start_stock_price
             last_money_made = money_invested
             current_stock_price = start_stock_price
+            summed_dividend_money = 0
         # last stock price
         end_stock_price_in_a_list = self.invest_on_date(
             start_date + timedelta(365 * look_foward_years), symbol, df_combined
@@ -176,6 +183,7 @@ class StrategieDataInterface:
                 ),
                 "dividend": np.nan,
                 "dividend_money": np.nan,
+                "summed_dividend_money": str(summed_dividend_money),
                 "date": np.nan,
             }
         )
@@ -300,11 +308,17 @@ class StrategieDataInterface:
         r_money = r_money * (r_anual_stock_price_change / last_stock_price)
 
         # adding the interest to the money
-        r_money = r_money + (r_money * r_anual_interest_rate)
+        # if the next line is uncommented the dividenden will be added to the money
+        # r_money = r_money + (r_money * r_anual_interest_rate)
 
         # print("new money: "+str(r_money))
         # print("")
 
+        last_dividend_money = 0
+        if len(output) > 0:
+            # print(output[-1])
+            last_dividend_money = float(output[-1]["dividend_money"])
+        # print(r_money)
         output.append(
             {
                 "r-anual_interest_rate": str(r_anual_interest_rate),
@@ -317,6 +331,7 @@ class StrategieDataInterface:
                 ),
                 "dividend": str(1 + r_anual_interest_rate),
                 "dividend_money": str(r_money * (r_anual_interest_rate)),
+                "summed_dividend_money": str((r_money * r_anual_interest_rate) + last_dividend_money),
                 "date": s_months - r_months,
                 # "date_time":
             }

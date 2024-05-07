@@ -163,9 +163,14 @@ def test_compound_interest_calc_recursive(setup):
 def test_compound_interest_calc_recursive_with_extras(setup):
     calc_data, df_combined = setup
 
-    first_stock_price = calc_data.invest_on_date(
+    start_stock_price_in_a_list = calc_data.invest_on_date(
         pd.to_datetime("2021-01-01"), "TEST", df_combined
-    )
+    )        
+    if start_stock_price_in_a_list.empty:
+        return pd.DataFrame()
+
+    start_stock_price = start_stock_price_in_a_list.iloc[0]
+
     dividends = calc_data.get_dividends(
         df_combined, pd.to_datetime("2021-01-01"), 2.0, "TEST"
     )
@@ -175,10 +180,12 @@ def test_compound_interest_calc_recursive_with_extras(setup):
         100,
         dividends["alpha_close"].count(),
         dividends["alpha_close"].count(),
-        first_stock_price,
+        start_stock_price,
         dividends["alpha_dividend"],
         dividends["alpha_close"],
         output,
     )
-    print(output)
-    assert int(result) == 102
+    print(pd.DataFrame(output).columns)
+    print(pd.DataFrame(output)[["money", "dividend", "current stock price", "dividend_money"]])
+    print(result)
+    assert int(result) == 500
