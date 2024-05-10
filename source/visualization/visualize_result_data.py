@@ -100,33 +100,6 @@ class VisualizeResultData:
             + "results_look_backward_years_vs_money_made.html"
         )
 
-        self.result_data.iplot(
-            kind="scatter",
-            x="all",
-            y="money_made",
-            mode="markers",
-            xTitle="All",
-            yTitle="Money made",
-            title="Money made vs all",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_all_vs_money_made.html"
-        )
-        self.result_data.drop_duplicates(subset=["symbol", "money_made"]).iplot(
-            kind="scatter",
-            x="all",
-            y="money_made",
-            mode="markers",
-            xTitle="All",
-            yTitle="Money made",
-            title="Money made vs all",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_all_vs_money_made_no_dup.html"
-        )
-
     def visualize_vs_msiw(self, combined_data: pd.DataFrame):
         """
         This function is used to compare all the data from the result data
@@ -150,7 +123,7 @@ class VisualizeResultData:
         # with the same data as the portfolio
         # so the missing point is add the future date to the msci world stock
 
-        look_backward_years = 5
+        look_backward_years = 10
         strategie_execution = str_exec.StrategieExecution(combined_data)
         calc_data = str_data.StrategieDataInterface()
 
@@ -259,8 +232,8 @@ class VisualizeResultData:
                 mode="lines",
                 x=portfolio_progression["future_date"],
                 y=portfolio_progression["money_made"],
-                name=f"close from portfolio {year_selection+1990}"
-                f"to {year_selection+ 1990 + look_backward_years} years",
+                name=f"close from portfolio {year_selection+1985}"
+                f"to {year_selection+ 1985 + look_backward_years} years",
                 line=dict(color="blue"),
             )
             msci_plot = go.Scatter(
@@ -277,15 +250,15 @@ class VisualizeResultData:
             # its from (1990 + 10 + 7 + 3) = 2010 to (1990 + 10 + 7 + 3 + 7) = 2010
             fig.update_layout(
                 title=f"msci world vs portfolio from"
-                f"{year_selection+look_backward_years+1990}"
-                f"to {year_selection+ 1990 +  look_backward_years + 3} years"
+                f"{year_selection+look_backward_years+1985}"
+                f"to {year_selection+ 1985 +  look_backward_years + 3} years"
             )
 
             fig.write_html(
                 file_names["basic_paths"]["visualize_data_iterations"]
                 + "msci_world_vs_portfolio_"
-                f"{year_selection+ look_backward_years+ 1990}"
-                f"_{year_selection+ 1990 + look_backward_years + 3}.html"
+                f"{year_selection+ look_backward_years+ 1985}"
+                f"_{year_selection+ 1985 + look_backward_years + 3}.html"
             )
 
     def visualize_histogram_plots(self):
@@ -317,7 +290,7 @@ class VisualizeResultData:
 
         # histogram but with timespan selected before
 
-        for x in range(1, 30):
+        for x in range(1, 35):
             if self.result_data[(self.result_data["time_span"] == x)].empty:
                 continue
 
@@ -330,7 +303,7 @@ class VisualizeResultData:
                 asFigure=True,
             ).write_html(
                 file_names["basic_paths"]["visualize_data_iterations"]
-                + f"histogram_money_made_timespan_{1990+x}_combined.html"
+                + f"histogram_money_made_timespan_{1985+x}_combined.html"
             )
 
             for y in range(3, 11):
@@ -352,7 +325,7 @@ class VisualizeResultData:
                     asFigure=True,
                 ).write_html(
                     file_names["basic_paths"]["visualize_data_iterations"]
-                    + f"histogram_money_made_timespan_{1990+x}"
+                    + f"histogram_money_made_timespan_{1985+x}"
                     f"_look_forward{y}_combined.html"
                 )
 
@@ -383,20 +356,22 @@ class VisualizeResultData:
         """
         # save all portfolios which got sold on the same year
 
-        some_df = self.result_data.copy()
+        copied_df = self.result_data.copy()
 
-        some_df["together"] = (
-            some_df["time_span"]
-            + some_df["look_backward_years"]
-            + some_df["look_forward_years"]
+        copied_df["together"] = (
+            copied_df["time_span"]
+            + copied_df["look_backward_years"]
+            + copied_df["look_forward_years"]
         )
 
-        # filter some_df that look_forward_years is 3
-        some_df = some_df[some_df["look_forward_years"] == 3]
+        # filter copied_df that look_forward_years is 3
+        copied_df = copied_df[copied_df["look_forward_years"] == 3]
+        print("moin")
+        print(copied_df["together"].min())
 
-        for x in range(1, some_df["together"].max()):
+        for x in range(copied_df["together"].min(), copied_df["together"].max()):
 
-            temp_df = some_df[(some_df["together"] == x)].sort_values(
+            temp_df = copied_df[(copied_df["together"] == x)].sort_values(
                 by="time_span", ascending=False
             )
 
@@ -405,7 +380,7 @@ class VisualizeResultData:
             temp_df = temp_df.drop_duplicates(subset=["symbol", "money_made"])
             fig = make_subplots(specs=[[{"secondary_y": True}]])
             fig.update_layout(
-                title=f"Money made vs symbol, Year the Investment ended: {1990+x}"
+                title=f"Money made vs symbol, Year the Investment ended: {1985+x}"
             )
             temp_df = temp_df.sort_values(by="rank_all", ascending=True)
             # combine temp_df[["look_backward_years","look_forward_years", "time_span"] ] with \n
@@ -415,7 +390,7 @@ class VisualizeResultData:
                 + "\n years invested:"
                 + temp_df["look_forward_years"].astype(str)
                 + "\n start year"
-                + (1990 + temp_df["time_span"]).astype(str)
+                + (1985 + temp_df["time_span"]).astype(str)
                 + "\n rank_all"
                 + temp_df["rank_all"].astype(str)
                 + "\n number continutiy"
@@ -434,5 +409,5 @@ class VisualizeResultData:
 
             fig.write_html(
                 file_names["basic_paths"]["visualize_data_iterations"]
-                + f"symbol_vs_money_made_sold_on{1990 + x}.html"
+                + f"symbol_vs_money_made_sold_on{1985 + x}.html"
             )

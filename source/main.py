@@ -154,8 +154,6 @@ def main():
 
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])
 
-    # print(bl.BruteforceChecks(pre_combine.combined_data).check_along_time_and_timespan())
-    # str_exec.StrategieExecution(pre_combine.combined_data).check_along_time_axis()
 
     # result = str_exec.StrategieExecution(
     #     pre_combine.combined_data

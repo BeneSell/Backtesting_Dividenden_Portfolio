@@ -18,7 +18,7 @@ class StrategieExecution:
     def check_all_stocks(
         self,
         start_date: datetime.datetime = datetime.date(2005, 12, 31),
-        look_forward_years: int = 12,
+        look_forward_years: int = 10,
     ) -> pd.DataFrame:
         """
         it checks all stocks which are in the combined_data
@@ -73,36 +73,6 @@ class StrategieExecution:
             if yearly_difference.empty:
                 continue
 
-            temp_continuity_x_years = (
-                calc_indikator.calculate_dividend_continuity_x_years_filter(
-                    yearly_difference, 5
-                )
-            )
-            temp_continuity_no_cuts = (
-                calc_indikator.calculate_dividend_continuity_no_div_reductions_filter(
-                    yearly_difference, 5
-                )
-            )
-            temp_growth_x_times = calc_indikator.calculate_dividend_growth_filter(
-                yearly_difference, 2, 5
-            )
-            temp_growth_indikative = (
-                calc_indikator.calculate_dividend_growth_indikative_filter(
-                    yearly_difference
-                )
-            )
-            temp_yield_indikative = (
-                calc_indikator.calculate_dividend_yield_indikative_filter(
-                    temp_dividends,
-                    start_date + timedelta(days=365 * look_forward_years),
-                )
-            )
-            temp_yield_historic = (
-                calc_indikator.calculate_dividend_yield_historic_filter(
-                    temp_dividends,
-                    start_date + timedelta(days=365 * look_forward_years),
-                )
-            )
 
             # now the calc_numbs
             temp_continuity_x_years_calc_numb = (
@@ -134,38 +104,9 @@ class StrategieExecution:
                 )
             )
 
-            bool_statements = [
-                temp_continuity_x_years,
-                temp_continuity_no_cuts,
-                temp_growth_x_times,
-                temp_growth_indikative,
-                temp_yield_indikative,
-                temp_yield_historic,
-            ]
-
-            true_count = sum(bool_statements)
-
-            # if true_count < 5:
-            #     continue
-
-            # if true_count < 5:
-            #     continue
-
             result.append(
                 {
                     "symbol": x,
-                    "all": temp_continuity_x_years
-                    and temp_continuity_no_cuts
-                    and temp_growth_x_times
-                    and temp_growth_indikative
-                    and temp_yield_indikative
-                    and temp_yield_historic,
-                    "filter_continuity": temp_continuity_no_cuts,
-                    "filter_continuity_x_years": temp_continuity_x_years,
-                    "filter_growth_x_times": temp_growth_x_times,
-                    "filter_growth_indikative": temp_growth_indikative,
-                    "filter_yield_indikative": temp_yield_indikative,
-                    "filter_yield_historic": temp_yield_historic,
                     "calc_numb_continuity_no_cuts": temp_continuity_no_cuts_calc_numb,
                     "calc_numb_continuity_x_years": temp_continuity_x_years_calc_numb,
                     "calc_numb_growth_x_times": temp_growth_x_times_calc_numb,
@@ -251,23 +192,6 @@ class StrategieExecution:
                     "symbol": x,
                     "money_made": temp_money_made,
                     "brutto_dividend_money": temp_dividend_made,
-                    "filter_continuity": temp_df_symbol["filter_continuity"].iloc[0],
-                    "filter_continuity_x_years": temp_df_symbol[
-                        "filter_continuity_x_years"
-                    ].iloc[0],
-                    "filter_growth_x_times": temp_df_symbol[
-                        "filter_growth_x_times"
-                    ].iloc[0],
-                    "filter_growth_indikative": temp_df_symbol[
-                        "filter_growth_indikative"
-                    ].iloc[0],
-                    "filter_yield_indikative": temp_df_symbol[
-                        "filter_yield_indikative"
-                    ].iloc[0],
-                    "filter_yield_historic": temp_df_symbol[
-                        "filter_yield_historic"
-                    ].iloc[0],
-                    "all": temp_df_symbol["all"].iloc[0],
                     "calc_numb_continuity_no_cuts": temp_df_symbol[
                         "calc_numb_continuity_no_cuts"
                     ].iloc[0],
@@ -315,7 +239,7 @@ class StrategieExecution:
         self,
         x,
         start_date: datetime.datetime = datetime.date(1990, 12, 31),
-        look_backward_years: int = 5,
+        look_backward_years: int = 10,
         look_forward_years: int = 5,
     ) -> pd.DataFrame:
         """
@@ -369,7 +293,7 @@ class StrategieExecution:
 
     def check_along_time_axis(
         self,
-        start_date: datetime.datetime = datetime.date(1990, 12, 31),
+        start_date: datetime.datetime = datetime.date(1985, 12, 31),
         look_backward_years: int = 12,
         look_forward_years: int = 3,
     ) -> pd.DataFrame:
@@ -384,12 +308,12 @@ class StrategieExecution:
         """
 
         future_results = []
-        num_workers = 30
+        num_workers = 35
 
         with concurrent.futures.ProcessPoolExecutor(
             max_workers=num_workers
         ) as executor:
-            for x in range(0, 30):
+            for x in range(0, 35):
                 # create copy of self.combined_data
 
                 future_results.append(
@@ -423,7 +347,7 @@ class StrategieExecution:
         for x in range(1, 4):
             print(f"look_forward_years: {x}, time: {datetime.datetime.now()}")
             temp_result = self.check_along_time_axis(
-                look_backward_years=5, look_forward_years=x
+                look_backward_years=10, look_forward_years=x
             )
 
             if x == 1:
