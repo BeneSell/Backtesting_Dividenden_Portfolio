@@ -73,9 +73,7 @@ def main():
     )
     pre_alpha = pre.PreproccessingAlphavantageData(raw_data_alpha)
 
-    # good_format_df = pre_fmp.pivot_dividenden_data(pre_fmp.normalized_data_dividend)
-    # print(good_format_df[good_format_df["variable"].str.contains("adjDividend")])
-
+    
     pre_combine = pre.PreproccessingCombinedData(pre_fmp, pre_alpha)
 
     vis_alpha = vis_pre.VisualizeAlphavantage(pre_alpha)
@@ -107,11 +105,11 @@ def main():
     vis_results.visualize_scatter_plots()
 
     vis_combined = vis_pre.VisualizeCombinedData(pre_combine)
-    # vis_combined.fmp_vs_alpha("AAPL")
-    # vis_combined.alpha_stock_vs_alpha_dividend("GHC")
-    # vis_combined.alpha_stock_vs_alpha_dividend("GGP")
-    # vis_combined.alpha_stock_vs_alpha_dividend("DPZ")
-    # vis_combined.alpha_stock_vs_alpha_dividend("IBM")
+    vis_combined.fmp_vs_alpha("AAPL")
+    vis_combined.alpha_stock_vs_alpha_dividend("COST")
+    vis_combined.alpha_stock_vs_alpha_dividend("XOM")
+    vis_combined.alpha_stock_vs_alpha_dividend("DPZ")
+    vis_combined.alpha_stock_vs_alpha_dividend("IBM")
 
     # bl.SingleStockCheck().check_for_increased_stock(pre_combine.combined_data)
     # print(
@@ -132,8 +130,7 @@ def main():
     #         money_invested=100,
     #     )
     # )
-    # drop all columns with only NaN values
-    pre_combine.combined_data = pre_combine.combined_data.dropna(axis=1, how="all")
+
     str_data.StrategieDataInterface().get_dividends(
         df_combined=pre_combine.combined_data,
         x=pd.to_datetime("2005-12-26"),
@@ -144,7 +141,7 @@ def main():
     #     start_date=pd.to_datetime("1995-01-01"), look_forward_years=7
     # ).to_csv("../data/results/one_year_result.csv")
 
-    
+
 
     # apple_dividends = bl.SingleStockCheck()\
     # .get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
@@ -160,14 +157,11 @@ def main():
     # print(bl.BruteforceChecks(pre_combine.combined_data).check_along_time_and_timespan())
     # str_exec.StrategieExecution(pre_combine.combined_data).check_along_time_axis()
 
-    result = str_exec.StrategieExecution(
-        pre_combine.combined_data
-    ).check_along_time_and_timespan()
-    result.to_csv(file_names['basic_paths']['result_data_path'] + file_names['file_names']['results_from_strategie_execution'])
+    # result = str_exec.StrategieExecution(
+    #     pre_combine.combined_data
+    # ).check_along_time_and_timespan()
+    # result.to_csv(file_names['basic_paths']['result_data_path'] + file_names['file_names']['results_from_strategie_execution'])
 
-    # bl.SingleStockCheck().calculate_dividend_growth(apple_dividends)
-    # bl.SingleStockCheck().calculate_dividend_stability(apple_dividends)
-    # bl.SingleStockCheck().calculate_dividend_yield(apple_dividends)
     # except Exception as e:
     # print("No dividends found in this time period"\
     #     f"{pd.to_datetime('2001-12-31')} - "\
@@ -177,13 +171,6 @@ def main():
 
     # bl.SingleStockCheck().get_dividends(pre_combine.combined_data,\
     #                                       pd.to_datetime("2005-03-01"), 1, "AAPL")
-
-    # print(pd.Period("03.2010"))
-
-    # print(pre_fmp.pivot_dividenden_data(pre_fmp.normalized_data_dividend))
-    # print(pre_fmp.pivot_stock_data(pre_fmp.normalized_stock_data))
-    # print("##")
-    # print(pre_alpha.normalized_data)
 
     # down_alpha.download_alphavantage_stock_and_dividend_data()
 

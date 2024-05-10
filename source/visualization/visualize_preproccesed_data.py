@@ -405,30 +405,30 @@ class VisualizeCombinedData:
         ]
 
         filtered_df = filtered_df[[stock_symbol, "date", "information"]]
+        filtered_df.sort_values(by="date", inplace=True)
 
-        # Pivot the DataFrame to have 'adbe' as columns
-        pivot_df = filtered_df.pivot_table(
-            index="date", columns="information", values=stock_symbol, aggfunc="mean"
-        ).rename(
-            columns={"alpha_close": "alpha_close", "alpha_dividend": "alpha_dividend"}
-        )
-
-        print(pivot_df)
-
-        pivot_df = pivot_df.reset_index()
+        # alpha close
+        df_alpha_close = filtered_df[
+            filtered_df["information"].isin(["alpha_close"])
+        ].dropna()
+        # alpha dividend
+        df_alpha_dividend = filtered_df[
+            filtered_df["information"].isin(["alpha_dividend"])
+        ].dropna()
 
         fig = make_subplots(specs=[[{"secondary_y": True}]])  # this a one cell subplot
 
+
         close_plot = go.Scatter(
             mode="lines",
-            x=pivot_df["date"].dt.to_timestamp(),
-            y=pivot_df["alpha_close"],
+            x=df_alpha_close["date"].dt.to_timestamp(),
+            y=df_alpha_close[stock_symbol],
             name=f"close {stock_symbol}",
         )
         dividend_plot = go.Scatter(
             mode="lines",
-            x=pivot_df["date"].dt.to_timestamp(),
-            y=pivot_df["alpha_dividend"],
+            x=df_alpha_dividend["date"].dt.to_timestamp(),
+            y=df_alpha_dividend[stock_symbol],
             name=f"dividend {stock_symbol}",
         )
 
