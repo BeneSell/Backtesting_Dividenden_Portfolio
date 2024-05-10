@@ -331,7 +331,9 @@ class StrategieDataInterface:
                 ),
                 "dividend": str(1 + r_anual_interest_rate),
                 "dividend_money": str(r_money * (r_anual_interest_rate)),
-                "summed_dividend_money": str((r_money * r_anual_interest_rate) + last_dividend_money),
+                "summed_dividend_money": str(
+                    (r_money * r_anual_interest_rate) + last_dividend_money
+                ),
                 "date": s_months - r_months,
                 # "date_time":
             }

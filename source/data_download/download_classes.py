@@ -11,6 +11,9 @@ import json
 import pandas as pd
 import requests
 
+with open("../config.json", "r", encoding="utf-8") as file_data:
+    file_names = json.load(file_data)
+
 
 class DownloadFMP:
     """
@@ -73,7 +76,10 @@ class DownloadFMP:
 
         elif choice == "read_csv":
             # read_csv solution
-            sp500 = pd.read_csv("../data/companies/s&p_companies_ticker_name.csv")
+            sp500 = pd.read_csv(
+                file_names["basic_paths"]["downloaded_data_path"]
+                + file_names["file_names"]["x"]
+            )
 
             result_list = sp500
             result_list = result_list["0"].to_list()
@@ -111,7 +117,10 @@ class DownloadFMP:
             raw_data_dividend.append(data)
             # save to file every time because i dont want to lose data
             with open(
-                "../data/stock_infos/raw_data_fmp.json", "w", encoding="utf-8"
+                file_names["basic_paths"]["downloaded_data_path"]
+                + file_names["file_names"]["dividend_fmp_from_internet"],
+                "w",
+                encoding="utf-8",
             ) as outfile:
                 json.dump(raw_data_dividend, outfile)
             time.sleep(1)
@@ -134,7 +143,8 @@ class DownloadFMP:
             raw_data_stocks.append({"data": data, "symbol": x})
             # save to file every time because i dont want to lose data
             with open(
-                "../data/stock_infos/raw_data_fmp_stock_value.json",
+                file_names["basic_paths"]["downloaded_data_path"]
+                + file_names["file_names"]["stock_fmp_from_internet"],
                 "w",
                 encoding="utf-8",
             ) as outfile:
@@ -155,16 +165,23 @@ class DownloadFMP:
 
         for x in result_list:
             # if in local folder there is a file called StockDividend_x.json then read it
-            if os.path.isfile(f"../data/stock_infos/from_prof/StockDividend_{x}.json"):
+            if os.path.isfile(
+                file_names["basic_paths"]["local_path_fmp_dividend"]
+                + file_names["file_names"]["temp_stock_info"]
+                + f"{x}.json"
+            ):
                 with open(
-                    f"../data/stock_infos/from_prof/StockDividend_{x}.json",
+                    file_names["basic_paths"]["local_path_fmp_dividend"]
+                    + file_names["file_names"]["temp_stock_info"]
+                    + f"{x}.json",
                     encoding="utf-8",
                 ) as json_file:
                     data = json.load(json_file)
                     data_result_list.append(data)
 
         with open(
-            "../data/stock_infos/raw_data_fmp_from_local_div.json",
+            file_names["basic_paths"]["local_path_fmp_dividend"]
+            + file_names["file_names"]["dividend_fmp_from_local"],
             "w",
             encoding="utf-8",
         ) as outfile:
@@ -213,7 +230,10 @@ class DownloadAlphavantageData:
 
         if choice == "read_csv":
             # read_csv solution
-            sp500 = pd.read_csv("../data/companies/s&p_companies_ticker_name.csv")
+            sp500 = pd.read_csv(
+                file_names["basic_paths"]["ticker_symbol_path"]
+                + file_names["file_names"]["company_names"]
+            )
 
             result_list = sp500
             result_list = result_list["0"].to_list()
@@ -247,5 +267,10 @@ class DownloadAlphavantageData:
             raw_data.append(data)
             time.sleep(1.5)
 
-        with open("../data/stock_infos/result.json", "w", encoding="utf-8") as fp:
+        with open(
+            file_names["basic_paths"]["downloaded_data_path"]
+            + file_names["file_names"]["alpha_vantage_data"],
+            "w",
+            encoding="utf-8",
+        ) as fp:
             json.dump(raw_data, fp)

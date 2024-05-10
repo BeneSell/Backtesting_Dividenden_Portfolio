@@ -14,65 +14,35 @@ def setup_fixture():
     # Setup code that needs to run before each test
     calc_data = str_data.StrategieDataInterface()
 
+    # basic dataframe only contains two rows
+    dates = ["2021-01", "2021-01", "2022-01", "2022-01"]
+    informations = ["alpha_close", "alpha_dividend", "alpha_close", "alpha_dividend"]
+    tests = [2.0, 2.0, 2.0, 2.0]
+
     data_combined = [
-        {
-            "date": pd.to_datetime("2021-01-01").to_period("M"),
-            "information": "alpha_close",
-            "TEST": 2.0,
-        },
-        {
-            "date": pd.to_datetime("2021-01-01").to_period("M"),
-            "information": "alpha_dividend",
-            "TEST": 2.0,
-        },
-        {
-            "date": pd.to_datetime("2022-01-01").to_period("M"),
-            "information": "alpha_close",
-            "TEST": 5.0,
-        },
-        {
-            "date": pd.to_datetime("2023-01-01").to_period("M"),
-            "information": "alpha_close",
-            "TEST": 10.0,
-        },
-        {
-            "date": pd.to_datetime("2024-01-01").to_period("M"),
-            "information": "alpha_close",
-            "TEST": 11.0,
-        },
-        {
-            "date": pd.to_datetime("2023-01-01").to_period("M"),
-            "information": "alpha_dividend",
-            "TEST": 3.0,
-        },
-        {
-            "date": pd.to_datetime("2024-01-01").to_period("M"),
-            "information": "alpha_dividend",
-            "TEST": 3.0,
-        },
-        {
-            "date": pd.to_datetime("2025-01-01").to_period("M"),
-            "information": "alpha_dividend",
-            "TEST": 3.0,
-        },
-        {
-            "date": pd.to_datetime("2025-02-01").to_period("M"),
-            "information": "alpha_dividend",
-            "TEST": 4.0,
-        },
-        {
-            "date": pd.to_datetime("2025-01-01").to_period("M"),
-            "information": "alpha_close",
-            "TEST": 12.0,
-        },
+        {"date": pd.to_datetime(date).to_period("M"), "information": info, "TEST": test}
+        for date, info, test in zip(dates, informations, tests)
     ]
 
     df_combined = pd.DataFrame(data_combined)
+
     yield calc_data, df_combined
     # Teardown code that needs to run after each test
 
 
-# Test cases
+def add_row_to_test_data(df_combined, date, information, value):
+
+    new_data = [
+        {
+            "date": pd.to_datetime(date).to_period("M"),
+            "information": information,
+            "TEST": value,
+        }
+    ]
+    df_combined = pd.concat([df_combined, pd.DataFrame(new_data)], ignore_index=True)
+    return df_combined
+
+
 def test_invest_on_date(setup):
     calc_data, df_combined = setup
 
@@ -80,8 +50,6 @@ def test_invest_on_date(setup):
     # print(df_combined)
     # print(result)
     assert result.iloc[0] == 2.0
-
-    pass
 
 
 # TODO: not happy path when no dividend is given
@@ -111,7 +79,7 @@ def test_check_money_made_by_div(setup):
     )
     print(df_combined)
     print(result)
-    assert result["money"].astype(float).iloc[0] == 102.0
+    assert result["money"].astype(float).iloc[0] == 100
 
 
 # TODO error when no stock on the given dates
@@ -129,23 +97,23 @@ def test_check_money_made_by_div_sad_path(setup):
     print(result)
     assert result["money"].astype(float).iloc[0] == 103.0
 
-    pass
-
 
 def test_check_for_increased_stock(setup):
     calc_data, df_combined = setup
 
+    df_to_test = add_row_to_test_data(df_combined, "2023-01", "alpha_close", 2)
+    df_to_test = add_row_to_test_data(df_to_test, "2023-01", "alpha_dividend", 2)
+
     result = calc_data.check_for_increased_stock(
-        df_combined,
+        df_to_test,
         "TEST",
         100,
         start_date=pd.to_datetime("2021-01-01"),
         look_forward_years=2,
     )
-    print(df_combined)
+    print(df_to_test)
     print(result)
     assert True
-    pass
 
 
 def test_compound_interest_calc_recursive(setup):
@@ -163,16 +131,19 @@ def test_compound_interest_calc_recursive(setup):
 def test_compound_interest_calc_recursive_with_extras(setup):
     calc_data, df_combined = setup
 
+    df_to_test = add_row_to_test_data(df_combined, "2023-01", "alpha_close", 4)
+    df_to_test = add_row_to_test_data(df_to_test, "2023-01", "alpha_dividend", 4)
+
     start_stock_price_in_a_list = calc_data.invest_on_date(
-        pd.to_datetime("2021-01-01"), "TEST", df_combined
-    )        
+        pd.to_datetime("2021-01-01"), "TEST", df_to_test
+    )
     if start_stock_price_in_a_list.empty:
         return pd.DataFrame()
 
     start_stock_price = start_stock_price_in_a_list.iloc[0]
 
     dividends = calc_data.get_dividends(
-        df_combined, pd.to_datetime("2021-01-01"), 2.0, "TEST"
+        df_to_test, pd.to_datetime("2021-01-01"), 2.0, "TEST"
     )
     output = []
 
@@ -186,6 +157,10 @@ def test_compound_interest_calc_recursive_with_extras(setup):
         output,
     )
     print(pd.DataFrame(output).columns)
-    print(pd.DataFrame(output)[["money", "dividend", "current stock price", "dividend_money"]])
+    print(
+        pd.DataFrame(output)[
+            ["money", "dividend", "current stock price", "dividend_money"]
+        ]
+    )
     print(result)
-    assert int(result) == 500
+    assert int(result) == 200

@@ -23,6 +23,10 @@ import visualization.visualize_result_data as vis_results_package
 # down_alpha = dl.DownloadAlphavantageData()
 
 # dl.DownloadFMP("").DownloadFMP_dividend_from_local()
+# get config.json data
+
+with open("../config.json", "r", encoding="utf-8") as file_data:
+    file_names = json.load(file_data)
 
 
 def main():
@@ -35,21 +39,34 @@ def main():
     raw_data_alpha = {}
 
     with open(
-        "../data/stock_infos/raw_data_fmp_from_local_div.json", "r", encoding="utf-8"
+        file_names["basic_paths"]["downloaded_data_path"]
+        + file_names["file_names"]["fmp_dividends"],
+        "r",
+        encoding="utf-8",
     ) as json_file:
         raw_data_fmp_dividends = json.load(json_file)
 
     with open(
-        "../data/stock_infos/raw_data_fmp_stock_value.json", "r", encoding="utf-8"
+        file_names["basic_paths"]["downloaded_data_path"]
+        + file_names["file_names"]["fmp_stocks"],
+        "r",
+        encoding="utf-8",
     ) as json_file:
         raw_data_fmp_stock_value = json.load(json_file)
 
-    with open("../data/stock_infos/result.json", encoding="utf-8") as json_file:
+    with open(
+        file_names["basic_paths"]["downloaded_data_path"]
+        + file_names["file_names"]["alpha_vantage_data"],
+        encoding="utf-8",
+    ) as json_file:
         data = json_file.read()
         raw_data_alpha = json.loads(data)
 
     # results_sorted_06 is a good result file and not dynamic (it dosent get overwritten)
-    result_df = pd.read_csv("../data/results/bruteforce_results.csv")
+    result_df = pd.read_csv(
+        file_names["basic_paths"]["result_data_path"]
+        + file_names["file_names"]["results_from_strategie_execution"]
+    )
 
     pre_fmp = pre.PreproccessingFMPData(
         raw_data_fmp_dividends, raw_data_fmp_stock_value
@@ -86,12 +103,12 @@ def main():
 
     vis_results = vis_results_package.VisualizeResultData(result_df)
     vis_results.visualize_symbol_vs_money_after_three_years()
-    # vis_results.visualize_vs_msiw(combined_data=pre_combine.combined_data)
+    vis_results.visualize_vs_msiw(combined_data=pre_combine.combined_data)
     vis_results.visualize_scatter_plots()
 
     vis_combined = vis_pre.VisualizeCombinedData(pre_combine)
-    vis_combined.fmp_vs_alpha("AAPL")
-    vis_combined.alpha_stock_vs_alpha_dividend("GHC")
+    # vis_combined.fmp_vs_alpha("AAPL")
+    # vis_combined.alpha_stock_vs_alpha_dividend("GHC")
     # vis_combined.alpha_stock_vs_alpha_dividend("GGP")
     # vis_combined.alpha_stock_vs_alpha_dividend("DPZ")
     # vis_combined.alpha_stock_vs_alpha_dividend("IBM")
@@ -123,20 +140,15 @@ def main():
         look_forward_years=7,
         symbol="IBM",
     )
-    str_exec.StrategieExecution(pre_combine.combined_data).check_all_stocks(
-        start_date=pd.to_datetime("1995-01-01"), look_forward_years=7
-    ).to_csv("../data/results/one_year_result.csv")
+    # str_exec.StrategieExecution(pre_combine.combined_data).check_all_stocks(
+    #     start_date=pd.to_datetime("1995-01-01"), look_forward_years=7
+    # ).to_csv("../data/results/one_year_result.csv")
 
-    # pre_combine.combined_data["DPZ"].to_csv("../data/results/DPZ_to_check.csv")
-    # bl.SingleStockCheck().get_dividends(
-    #     pre_combine.combined_data, pd.to_datetime("2008-12-26"), 10, "DPZ"
-    # ).to_csv("../data/results/DPZ_dividends.csv")
+    
 
     # apple_dividends = bl.SingleStockCheck()\
     # .get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
 
-    # stock_results = bl.BruteforceChecks(pre_combine.combined_data).check_all_stocks()
-    # stock_results.to_csv("../data/results/new_result_01.csv")
 
     # print(bl.BruteforceChecks(pre_combine.combined_data)\
     #                            .test_a_portfolio(stock_results\
@@ -148,10 +160,10 @@ def main():
     # print(bl.BruteforceChecks(pre_combine.combined_data).check_along_time_and_timespan())
     # str_exec.StrategieExecution(pre_combine.combined_data).check_along_time_axis()
 
-    # result = str_exec.StrategieExecution(
-    #     pre_combine.combined_data
-    # ).check_along_time_and_timespan()
-    # result.to_csv("../data/results/bruteforce_results.csv")
+    result = str_exec.StrategieExecution(
+        pre_combine.combined_data
+    ).check_along_time_and_timespan()
+    result.to_csv(file_names['basic_paths']['result_data_path'] + file_names['file_names']['results_from_strategie_execution'])
 
     # bl.SingleStockCheck().calculate_dividend_growth(apple_dividends)
     # bl.SingleStockCheck().calculate_dividend_stability(apple_dividends)

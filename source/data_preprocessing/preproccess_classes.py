@@ -4,9 +4,13 @@ It is used to normalize the data and to combine the data from different sources.
 """
 
 import pandas as pd
+import json
 
-# import json
+
 # from datetime import datetime, timedelta
+
+with open("../config.json", "r", encoding="utf-8") as file_data:
+    file_names = json.load(file_data)
 
 
 class PreproccsesingTickerSymbol:
@@ -22,9 +26,20 @@ class PreproccsesingTickerSymbol:
         This function is used to get all the ticker symbols from the
         wikidata_ticker_symbol_data.csv and the wikilist_1.csv and wikilist_2.csv
         """
-        symbol_df = pd.read_csv("../data/companies/wikidata_ticker_symbol_data.csv")
-        list_df_1 = pd.read_csv("../data/companies/wikilist_1.csv", encoding="latin-1")
-        list_df_2 = pd.read_csv("../data/companies/wikilist_2.csv", encoding="latin-1")
+        symbol_df = pd.read_csv(
+            file_names["basic_paths"]["ticker_symbol_path"]
+            + file_names["file_names"]["company_names"]
+        )
+        list_df_1 = pd.read_csv(
+            file_names["basic_paths"]["ticker_symbol_path"]
+            + file_names["file_names"]["company_names_from_wiki_1"],
+            encoding="latin-1",
+        )
+        list_df_2 = pd.read_csv(
+            file_names["basic_paths"]["ticker_symbol_path"]
+            + file_names["file_names"]["company_names_from_wiki_2"],
+            encoding="latin-1",
+        )
 
         len(symbol_df["tickerSymbol"].unique())
         # check which companies are missing in the wikidata_ticker_symbol_data.csv
@@ -137,16 +152,6 @@ class PreproccessingFMPData:
         """
         This function is used to normalize the stock data from the financialmodelingprep api
         """
-
-        # same as above but for stock value
-
-        # for testing it once before doing it in for loop
-        # print(self.raw_data_stock[1].keys())
-
-        # df_stock = pd.DataFrame(pd.json_normalize(self.raw_data_stock[0]["data"]))
-        # df_stock["date"] = pd.to_datetime(df_stock["date"]).dt.to_period('M')
-
-        # df_stock
 
         result_df = pd.DataFrame()
 
@@ -335,8 +340,8 @@ class PreproccessingCombinedData:
         df_concat["information"] = df_concat["information"].replace(
             {
                 "close": "fmp_close",
-                "dividend": "fmp_dividend",
-                " dividend amount": "alpha_dividend",
+                "dividend": "alpha_dividend",
+                " dividend amount": "fmp_dividend",
                 " adjusted close": "alpha_close",
             }
         )

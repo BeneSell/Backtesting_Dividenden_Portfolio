@@ -5,6 +5,8 @@ This Package is used to visualize the data from the preproccessing classes
 # from datetime import timedelta
 # import pandas as pd
 
+import json
+
 import data_preprocessing.preproccess_classes as pre
 
 # import matplotlib.pyplot as plt
@@ -19,6 +21,9 @@ import plotly.express as px
 import cufflinks
 
 cufflinks.go_offline()
+
+with open("../config.json", "r", encoding="utf-8") as file_data:
+    file_names = json.load(file_data)
 
 
 class VisualizeFMP:
@@ -58,7 +63,10 @@ class VisualizeFMP:
             xTitle="date",
             yTitle="dividend",
             asFigure=True,
-        ).write_html(f"../data/vis/{stock_symbol}_fmp_dividende.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol}_fmp_dividende.html"
+        )
 
     def visualize_stock_as_candlestick(self, stock_symbol: str):
         """
@@ -96,7 +104,10 @@ class VisualizeFMP:
                 )
             ]
         )
-        fig.write_html(f"../data/vis/{stock_symbol}_fmp_stock_candlestick.html")
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol}_fmp_stock_candlestick.html"
+        )
 
     def visualize_stock_data(self, stock_symbol: str):
         """
@@ -122,7 +133,10 @@ class VisualizeFMP:
             xTitle="x",
             yTitle="x",
             asFigure=True,
-        ).write_html(f"../data/vis/{stock_symbol}_fmp_stock.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol}_fmp_stock.html"
+        )
 
 
 class VisualizeAlphavantage:
@@ -186,7 +200,10 @@ class VisualizeAlphavantage:
         fig.update_xaxes(title_text="Date")
         # add y axis label
         fig.update_yaxes(title_text="Price")
-        fig.write_html(f"../data/vis/{stock_symbol}_alpha_stock_candlestick.html")
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol}_alpha_stock_candlestick.html"
+        )
 
     def visualize_stock_data(self, stock_symbol_list=None):
         """
@@ -245,9 +262,14 @@ class VisualizeAlphavantage:
         #     yTitle="stock price",
         #     asFigure=True,
         # ).write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
-        
-        fig = px.line(data_frame=df_to_plot, x="date", y=stock_symbol_list, title="stock price")
-        fig.write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
+
+        fig = px.line(
+            data_frame=df_to_plot, x="date", y=stock_symbol_list, title="stock price"
+        )
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol_list}_alpha_stock.html"
+        )
 
         # df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
         # df_to_plot.set_index("date", inplace=True)
@@ -313,29 +335,9 @@ class VisualizeAlphavantage:
             yTitle="dividenden",
             asFigure=True,
         ).write_html(
-            f"../data/vis/dividend_data/{stock_symbol_list}_alpha_dividenden.html"
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol_list}_alpha_dividenden.html"
         )
-
-    def visualize_all_dividend_data(self):
-        """
-        This function is used to visualize all the dividend data from alphavantage
-        It will write the diagram to a lot of html files
-
-        Basically a wrapper function for visualize_dividenden_data
-        """
-        for x in self.preproccessed_data.columns:
-            if (
-                x == "information"
-                or x == "index"
-                or x == "index_extracted"
-                or x == "random_counter"
-                or x == "date"
-                or x == "variable"
-                or x == "value"
-                or x == "symbol"
-            ):
-                continue
-            self.visualize_dividenden_data([x])
 
 
 class VisualizeCombinedData:
@@ -381,7 +383,10 @@ class VisualizeCombinedData:
             xTitle="date",
             yTitle="dividenden",
             asFigure=True,
-        ).write_html(f"../data/vis/{stock_symbol}_alpha_vs_fmp.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + f"{stock_symbol}_alpha_vs_fmp.html"
+        )
         # plt.show()
 
     def alpha_stock_vs_alpha_dividend(self, stock_symbol: str = "ADBE"):
@@ -441,14 +446,3 @@ class VisualizeCombinedData:
         #  yTitle="dividenden",\
         #  asFigure=True).write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
         # plt.show()
-
-
-class VisualizeSingleStockCheckerResults:
-    """
-    This class is used to visualize the results from the single stock checker
-    """
-
-    def __init__(self) -> None:
-        # data here is very different for every method
-        # so i dont think its good to have a general init
-        pass

@@ -5,6 +5,7 @@ visualize the results data
 from datetime import timedelta
 import pandas as pd
 import numpy as np
+import json
 
 # import matplotlib.pyplot as plt
 # from plotly.offline import iplot
@@ -18,6 +19,9 @@ import data_business_logic.strategie_data_interface as str_data
 import cufflinks
 
 cufflinks.go_offline()
+
+with open("../config.json", "r", encoding="utf-8") as file_data:
+    file_names = json.load(file_data)
 
 
 class VisualizeResultData:
@@ -52,7 +56,10 @@ class VisualizeResultData:
             xTitle="Symbol",
             yTitle="Money made (AVG)",
             asFigure=True,
-        ).write_html("../data/vis/results_symbol_vs_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_symbol_vs_money_made.html"
+        )
         self.result_data.iplot(
             kind="scatter",
             x="time_span",
@@ -62,7 +69,10 @@ class VisualizeResultData:
             yTitle="Money made",
             title="Money made vs time span",
             asFigure=True,
-        ).write_html("../data/vis/results_time_span_vs_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_time_span_vs_money_made.html"
+        )
         self.result_data.iplot(
             kind="scatter",
             x="look_forward_years",
@@ -72,7 +82,10 @@ class VisualizeResultData:
             yTitle="Money made",
             title="Money made vs look forward years",
             asFigure=True,
-        ).write_html("../data/vis/results_look_forward_years_vs_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_look_forward_years_vs_money_made.html"
+        )
         self.result_data.iplot(
             kind="scatter",
             x="look_backward_years",
@@ -82,7 +95,10 @@ class VisualizeResultData:
             yTitle="Money made",
             title="Money made vs look backward years",
             asFigure=True,
-        ).write_html("../data/vis/results_look_backward_years_vs_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_look_backward_years_vs_money_made.html"
+        )
 
         self.result_data.iplot(
             kind="scatter",
@@ -93,7 +109,10 @@ class VisualizeResultData:
             yTitle="Money made",
             title="Money made vs all",
             asFigure=True,
-        ).write_html("../data/vis/results_all_vs_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_all_vs_money_made.html"
+        )
         self.result_data.drop_duplicates(subset=["symbol", "money_made"]).iplot(
             kind="scatter",
             x="all",
@@ -103,7 +122,10 @@ class VisualizeResultData:
             yTitle="Money made",
             title="Money made vs all",
             asFigure=True,
-        ).write_html("../data/vis/results_all_vs_money_made_no_dup.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "results_all_vs_money_made_no_dup.html"
+        )
 
     def visualize_vs_msiw(self, combined_data: pd.DataFrame):
         """
@@ -160,45 +182,43 @@ class VisualizeResultData:
             )
             start_investment = 3000
 
+            # list_msciworld = [
+            #     {
+            #         "money_made": calc_data.check_money_made_by_div(
+            #             start_date=pd.to_datetime(start_date)
+            #             + timedelta(days=365 * (look_backward_years)),
+            #             look_foward_years=x,
+            #             symbol="SC0J.DE",
+            #             df_combined=combined_data,
+            #             money_invested=start_investment,
+            #         ).iloc[-1]["money"],
+            #         "date": pd.to_datetime(start_date)
+            #         + timedelta(days=365 * look_backward_years)
+            #         + timedelta(days=365 * x),
+            #     }
+            #     for x in range(1, 4)
+            # ]
+
+            # if money_made is nan we have no data for msci world
+            # if np.isnan(float(list_msciworld[0]["money_made"])):
+            # print("no data for msci world")
+            # use 7.5 % as average return per anno
+            # 100 * 1.075**years
             list_msciworld = [
                 {
-                    "money_made": calc_data.check_money_made_by_div(
-                        start_date=pd.to_datetime(start_date)
-                        + timedelta(days=365 * (look_backward_years)),
-                        look_foward_years=x,
-                        symbol="SC0J.DE",
-                        df_combined=combined_data,
-                        money_invested=start_investment,
-                    ).iloc[-1]["money"],
+                    "money_made": start_investment * 1.075**x,
                     "date": pd.to_datetime(start_date)
                     + timedelta(days=365 * look_backward_years)
                     + timedelta(days=365 * x),
                 }
                 for x in range(1, 4)
             ]
-            
-            # if money_made is nan we have no data for msci world
-            if np.isnan(float(list_msciworld[0]["money_made"])):
-                # print("no data for msci world")
-                # use 7.5 % as average return per anno
-                # 100 * 1.075**years
-                list_msciworld = [
-                    {
-                        "money_made": start_investment * 1.075 ** x,
-                        "date": pd.to_datetime(start_date)
-                        + timedelta(days=365 * look_backward_years)
-                        + timedelta(days=365 * x),
-                    }
-                    for x in range(1, 4)
-                ]
-
 
             list_msciworld = list_msciworld + [
                 {"money_made": start_investment, "date": middle_date}
             ]
 
             msci_money_made = pd.DataFrame(list_msciworld).sort_values(by="date")
-
 
             # print(msic_money_made)
 
@@ -262,7 +282,8 @@ class VisualizeResultData:
             )
 
             fig.write_html(
-                "../data/vis/iteration_stuff/msci_world_vs_portfolio_"
+                file_names["basic_paths"]["visualize_data_iterations"]
+                + "msci_world_vs_portfolio_"
                 f"{year_selection+ look_backward_years+ 1990}"
                 f"_{year_selection+ 1990 + look_backward_years + 3}.html"
             )
@@ -278,7 +299,10 @@ class VisualizeResultData:
             yTitle="Frequency",
             title="Money made histogram",
             asFigure=True,
-        ).write_html("../data/vis/histogram_money_made.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + file_names["file_names"]["histogram_money_made"]
+        )
         # histogram symbols sort by frequency
         self.result_data["symbol"].value_counts().iplot(
             kind="bar",
@@ -286,16 +310,10 @@ class VisualizeResultData:
             yTitle="Frequency",
             title="Symbol frequency",
             asFigure=True,
-        ).write_html("../data/vis/histogram_.html")
-
-        # histogram all sort by frequency
-        self.result_data["all"].value_counts().iplot(
-            kind="bar",
-            xTitle="All",
-            yTitle="Frequency",
-            title="All frequency",
-            asFigure=True,
-        ).write_html("../data/vis/histogram_.html")
+        ).write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + file_names["file_names"]["histogram_symbols"]
+        )
 
         # histogram but with timespan selected before
 
@@ -311,8 +329,8 @@ class VisualizeResultData:
                 title="Money made histogram",
                 asFigure=True,
             ).write_html(
-                "../data/vis/iteration_stuff/"
-                f"histogram_money_made_timespan_{1990+x}_combined.html"
+                file_names["basic_paths"]["visualize_data_iterations"]
+                + f"histogram_money_made_timespan_{1990+x}_combined.html"
             )
 
             for y in range(3, 11):
@@ -333,8 +351,8 @@ class VisualizeResultData:
                     title="Money made histogram",
                     asFigure=True,
                 ).write_html(
-                    "../data/vis/iteration_stuff/"
-                    f"histogram_money_made_timespan_{1990+x}"
+                    file_names["basic_paths"]["visualize_data_iterations"]
+                    + f"histogram_money_made_timespan_{1990+x}"
                     f"_look_forward{y}_combined.html"
                 )
 
@@ -358,80 +376,6 @@ class VisualizeResultData:
                     #                   .write_html("../data/vis/iteration_stuff/"\
                     #                   f"histogram_money_made_timespan_{1990+x}"\
                     #                   f"_look_forward{y}_look_backwards{z}.html")
-
-    def visualize_symbol_vs_money_made(self):
-        """
-        Actually it is really bad because of variable middle dates!
-        """
-        # histogram but with timespan selected before
-
-        for x in range(1, 30):
-            if self.result_data[(self.result_data["time_span"] == x)].empty:
-                continue
-
-            self.result_data[(self.result_data["time_span"] == x)][
-                ["money_made", "symbol"]
-            ].groupby("symbol").mean().reset_index().iplot(
-                kind="bar",
-                y="money_made",
-                x="symbol",
-                xTitle="Money made",
-                yTitle="Frequency",
-                title="Money made histogram",
-                asFigure=True,
-            ).write_html(
-                f"../data/vis/iteration_stuff/"
-                f"symbol_vs_money_made_timespan_{1990+x}_combined.html"
-            )
-
-            for y in range(3, 11):
-                if self.result_data[
-                    (self.result_data["time_span"] == x)
-                    & (self.result_data["look_backward_years"] == y)
-                ].empty:
-                    continue
-
-                to_plot = (
-                    self.result_data[
-                        (self.result_data["time_span"] == x)
-                        & (self.result_data["look_backward_years"] == y)
-                    ][["money_made", "symbol", "all"]]
-                    .groupby("symbol")
-                    .mean()
-                    .reset_index()
-                    .sort_values(by="all", ascending=False)
-                )
-
-                fig = go.Figure()
-
-                fig.add_trace(
-                    go.Bar(
-                        x=to_plot["symbol"],
-                        y=to_plot["money_made"],
-                        hovertext=to_plot["all"],
-                    )
-                )
-
-                fig.update_layout(
-                    title=f"Money made vs symbol timespan  Start_date:"
-                    f"{1990+x}, Middle_date {1990+x+y} "
-                    f"Future_date combined from {1990+x+y + 3} to {1990+x+y+10} years"
-                )
-                fig.write_html(
-                    "../data/vis/iteration_stuff/"
-                    f"symbol_vs_money_made_timespan_"
-                    f"{1990+x}_look_forward{y}_combined.html"
-                )
-
-                for z in range(3, 11):
-                    if self.result_data[
-                        (self.result_data["time_span"] == x)
-                        & (self.result_data["look_backward_years"] == y)
-                        & (self.result_data["look_forward_years"] == z)
-                    ].empty:
-                        continue
-
-                    # here we could do actions per portfolio
 
     def visualize_symbol_vs_money_after_three_years(self):
         """
@@ -489,8 +433,6 @@ class VisualizeResultData:
             )
 
             fig.write_html(
-                "../data/vis/iteration_stuff/"
-                f"symbol_vs_money_made_sold_on{1990 + x}.html"
+                file_names["basic_paths"]["visualize_data_iterations"]
+                + f"symbol_vs_money_made_sold_on{1990 + x}.html"
             )
-
-   
