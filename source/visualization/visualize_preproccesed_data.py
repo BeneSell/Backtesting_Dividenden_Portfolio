@@ -200,11 +200,11 @@ class VisualizeAlphavantage:
         )
         
 
-        fig.update_layout(title=f"{stock_symbol} candlestick chart")
+        fig.update_layout(title=f"Ein Candlestick Diagramm von der Aktie: {stock_symbol}")
         # add x axis label
-        fig.update_xaxes(title_text="Date")
+        fig.update_xaxes(title_text="Zeit in Jahren")
         # add y axis label
-        fig.update_yaxes(title_text="Price")
+        fig.update_yaxes(title_text="Preis in Dollar")
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"]
             + f"{stock_symbol}_alpha_stock_candlestick.html"
@@ -427,19 +427,19 @@ class VisualizeCombinedData:
             mode="lines",
             x=df_alpha_close["date"].dt.to_timestamp(),
             y=df_alpha_close[stock_symbol],
-            name=f"close {stock_symbol}",
+            name= "Aktienkurs",
         )
         dividend_plot = go.Scatter(
             mode="lines",
             x=df_alpha_dividend["date"].dt.to_timestamp(),
             y=df_alpha_dividend[stock_symbol],
-            name=f"dividend {stock_symbol}",
+            name= "Dividende",
         )
 
         fig.add_trace(close_plot, secondary_y=True)
         fig.add_trace(dividend_plot, secondary_y=False)
         # add title to fig
-        fig.update_layout(title=f"{stock_symbol} dividends vs stocks")
+        fig.update_layout(title=f"Darstellung der Aktie: {stock_symbol} mit Aktienkurse und Dividenden")
 
         fig.write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
 

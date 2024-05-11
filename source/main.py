@@ -93,12 +93,12 @@ def main():
     vis_alpha.visualize_stock_as_candlestick("GGP")
     vis_alpha.visualize_stock_data(["CTAS"])
     # vis_alpha.visualize_dividenden_data(["GGP"])
-    vis_alpha.visualize_dividenden_data(["DPZ"])
+    vis_alpha.visualize_dividenden_data(["GGP"])
 
     vis_fmp = vis_pre.VisualizeFMP(pre_fmp)
-    vis_fmp.visualize_dividenden_data("ADBE")
+    vis_fmp.visualize_dividenden_data("GGP")
     vis_fmp.visualize_stock_as_candlestick("AAPL")
-    vis_fmp.visualize_stock_data("AAPL")
+    vis_fmp.visualize_stock_data("GGP")
 
     vis_results = vis_results_package.VisualizeResultData(result_df)
     vis_results.visualize_symbol_vs_money_after_three_years()
@@ -109,12 +109,13 @@ def main():
     vis_results.visualize_all_portfolios_one_diagram()
     vis_results.visualize_by_ranking_position()
     vis_results.histogram_money_made_with_median_mode_mean()
+    vis_results.visualize_brutto_dividend()
 
     vis_combined = vis_pre.VisualizeCombinedData(pre_combine)
     vis_combined.fmp_vs_alpha("AAPL")
     vis_combined.alpha_stock_vs_alpha_dividend("COST")
     vis_combined.alpha_stock_vs_alpha_dividend("XOM")
-    vis_combined.alpha_stock_vs_alpha_dividend("DPZ")
+    vis_combined.alpha_stock_vs_alpha_dividend("GGP")
     vis_combined.alpha_stock_vs_alpha_dividend("IBM")
 
     # bl.SingleStockCheck().check_for_increased_stock(pre_combine.combined_data)

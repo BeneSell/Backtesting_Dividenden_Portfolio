@@ -560,7 +560,27 @@ class VisualizeResultData:
             .reset_index()
         )
 
-        fig = px.bar(rankiest_rank_df, x="rank_of_all_ranks", y="money_made")
+        fig = px.bar(rankiest_rank_df, x="rank_of_all_ranks", y="money_made", title="Unternehmensrendite bei Verkauf, gruppiert nach Rang des Unternehmens (durchschnittlich)",
+                     labels={"rank_of_all_ranks": "Rang des Unternehmens", "money_made": "Durchschnittliche Unternehmensrendite bei Verkauf"})
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"] + "rank_vs_money_made.html"
         )
+
+    def visualize_brutto_dividend(self):
+        """
+        This function is used to visualize the brutto dividend
+        """
+        brutto_dividend = self.result_data.copy()
+        brutto_dividend["sold_date"] = (
+            brutto_dividend["time_span"]
+            + brutto_dividend["look_forward_years"]
+            + brutto_dividend["look_backward_years"]
+            + 1985
+        )
+        brutto_dividend = brutto_dividend[brutto_dividend["look_forward_years"] == 3]
+        brutto_dividend = brutto_dividend.groupby(by="sold_date").sum(numeric_only=True).reset_index()
+
+        fig = px.bar(brutto_dividend, x="sold_date", y="brutto_dividend_money", title="Dividendenrendite ohne Steuern pro Portfolio"
+                     , labels={"sold_date": "Verkaufszeitpunkt", "brutto_dividend_money": "Dividendenrendite ohne Steuern"})
+        fig.write_html("../data/vis/brutto_dividend.html")
+        
