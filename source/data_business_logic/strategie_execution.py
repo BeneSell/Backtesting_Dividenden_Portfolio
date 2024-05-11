@@ -73,7 +73,6 @@ class StrategieExecution:
             if yearly_difference.empty:
                 continue
 
-
             # now the calc_numbs
             temp_continuity_x_years_calc_numb = (
                 calc_indikator.calculate_dividend_continuity_x_years_calc_numb(

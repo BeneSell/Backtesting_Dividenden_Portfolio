@@ -411,3 +411,156 @@ class VisualizeResultData:
                 file_names["basic_paths"]["visualize_data_iterations"]
                 + f"symbol_vs_money_made_sold_on{1985 + x}.html"
             )
+
+    def visualize_all_portfolios_one_diagram(self):
+        """
+        This function is used to visualize all portfolios in one diagram
+        """
+        rankiest_rank_df = self.result_data.copy()
+        rankiest_rank_df = rankiest_rank_df[rankiest_rank_df["look_forward_years"] == 3]
+
+        # exlude timespan 26,27 and 28
+        rankiest_rank_df = rankiest_rank_df[
+            (rankiest_rank_df["time_span"] != 26)
+            & (rankiest_rank_df["time_span"] != 27)
+            & (rankiest_rank_df["time_span"] != 28)
+        ]
+
+        rankiest_rank_df = (
+            rankiest_rank_df.groupby(by="time_span")
+            .sum(numeric_only=True)
+            .reset_index()
+        )
+        rankiest_rank_df["year_sold"] = (
+            rankiest_rank_df["time_span"].astype(float)
+        ) + 1998
+        fig = px.bar(
+            rankiest_rank_df, x="year_sold", y="money_made", title="Money made per year"
+        )
+
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"] + "all_portfolios.html"
+        )
+
+    def visualize_vs_eight_precent(self):
+        """
+        This function is used to visualize the money made with the eight percent growth rate
+        """
+
+        dividends_df = self.result_data.copy()
+
+        dividends_df["sold_date"] = (
+            dividends_df["time_span"]
+            + dividends_df["look_forward_years"]
+            + dividends_df["look_backward_years"]
+            + 1985
+        )
+        dividends_df = (
+            dividends_df[
+                (dividends_df["look_forward_years"] == 3)
+                & (dividends_df["time_span"] != 28)
+                & (dividends_df["time_span"] != 27)
+                & (dividends_df["time_span"] != 26)
+            ]
+            .groupby(by="sold_date")
+            .sum(numeric_only=True)
+            .reset_index()
+            .sort_values(by="sold_date", ascending=False)
+        )
+
+        eight_percent = 3000 * 1.08**3
+
+        # do a box in plot with the eight percent growth rate
+        fig = px.bar(
+            dividends_df,
+            x="sold_date",
+            y="money_made",
+            title="Growth rate per year",
+            color_discrete_sequence=["grey"],
+        )
+
+        # add to fig a line which is has the value 10
+        fig.add_hrect(
+            y0=eight_percent,
+            y1=dividends_df["money_made"].max(),
+            line_width=0,
+            fillcolor="green",
+            opacity=0.2,
+        )
+        fig.add_hrect(
+            y0=0, y1=eight_percent, line_width=0, fillcolor="red", opacity=0.2
+        )
+
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "money_made_with_growth_rate_box.html"
+        )
+
+    def histogram_money_made_with_median_mode_mean(self):
+        """
+        This function is used to visualize the histogram of the money made
+        """
+        to_plot = self.result_data[self.result_data["look_forward_years"] == 3]
+        # rankiest_ranked_grouped =  self.result_data.groupby(by="time_span").sum().reset_index()
+
+        # exlude timespan 26,27 and 28 because they are in the future
+        to_plot = to_plot[
+            (to_plot["time_span"] != 26)
+            & (to_plot["time_span"] != 27)
+            & (to_plot["time_span"] != 28)
+        ]
+
+        fig = px.histogram(to_plot, x="money_made")
+        # add median to histogram
+        fig.add_vline(
+            x=to_plot["money_made"].median(),
+            line_dash="dash",
+            line_color="green",
+            annotation_text="median",
+            annotation_position="top left",
+        )
+
+        # add mean to histogram
+        fig.add_vline(
+            x=to_plot["money_made"].mean(),
+            line_dash="dash",
+            line_color="red",
+            annotation_text="mean",
+            annotation_position="top right",
+        )
+
+        # add mode to histogram
+        fig.add_vline(
+            x=to_plot["money_made"].round(-1).mode()[0],
+            line_dash="dash",
+            line_color="blue",
+            annotation_text="mode",
+            annotation_position="bottom right",
+        )
+        # round money made on from 111 to 110
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"]
+            + "histogram_money_made_with_median_mode_mean.html"
+        )
+
+    def visualize_by_ranking_position(self):
+        """
+        This function is used to visualize the money made by ranking position
+        """
+
+        rankiest_rank_df = self.result_data[
+            (self.result_data["time_span"] != 26)
+            & (self.result_data["time_span"] != 27)
+            & (self.result_data["time_span"] != 28)
+        ]
+        rankiest_rank_df = (
+            rankiest_rank_df[(rankiest_rank_df["look_forward_years"] == 3)]
+            .groupby("rank_of_all_ranks")
+            .mean(numeric_only=True)
+            .reset_index()
+        )
+
+        fig = px.bar(rankiest_rank_df, x="rank_of_all_ranks", y="money_made")
+        fig.write_html(
+            file_names["basic_paths"]["visualize_data_path"] + "rank_vs_money_made.html"
+        )

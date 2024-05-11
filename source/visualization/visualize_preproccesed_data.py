@@ -173,12 +173,16 @@ class VisualizeAlphavantage:
 
         df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
 
-        df_to_plot = df_to_plot.dropna(subset=[stock_symbol])
+        df_to_plot = df_to_plot.dropna(subset=[stock_symbol]).sort_values(by="date")
+        
+        df_to_plot["timestamp"] = df_to_plot["date"].dt.to_timestamp()
+        # set timestamp as index
+        
 
         fig = go.Figure(
             data=[
                 go.Candlestick(
-                    x=df_to_plot["date"].dt.to_timestamp(),
+                    x=df_to_plot["timestamp"].drop_duplicates(),
                     open=df_to_plot[df_to_plot["information"].str.strip() == "open"][
                         stock_symbol
                     ],
@@ -194,6 +198,7 @@ class VisualizeAlphavantage:
                 )
             ]
         )
+        
 
         fig.update_layout(title=f"{stock_symbol} candlestick chart")
         # add x axis label
@@ -417,7 +422,6 @@ class VisualizeCombinedData:
         ].dropna()
 
         fig = make_subplots(specs=[[{"secondary_y": True}]])  # this a one cell subplot
-
 
         close_plot = go.Scatter(
             mode="lines",

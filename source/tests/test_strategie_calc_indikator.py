@@ -86,7 +86,6 @@ def test_calculate_dividend_continuity_x_years_calc_numb(setup):
     assert result == 2
 
 
-
 def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):
     calc_indikator, calc_data, df_combined = setup
 
@@ -105,7 +104,6 @@ def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):
 
 
 # growth tests
-
 
 
 def test_calculate_dividend_growth_calc_numb(setup):
@@ -139,7 +137,6 @@ def test_calculate_dividend_growth_indikative_calc_numb(setup):
 
 
 # yield tests
-
 
 
 def test_calculate_dividend_yield_indikative_calc_numb(setup):

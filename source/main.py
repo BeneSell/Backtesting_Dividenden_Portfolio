@@ -73,13 +73,14 @@ def main():
     )
     pre_alpha = pre.PreproccessingAlphavantageData(raw_data_alpha)
 
-    
     pre_combine = pre.PreproccessingCombinedData(pre_fmp, pre_alpha)
 
     vis_alpha = vis_pre.VisualizeAlphavantage(pre_alpha)
     # vis_alpha.visualize_stock_data(["600983"])
     # vis_alpha.visualize_stock_data(["GGP", "SC0J.DE"])
     vis_alpha.visualize_stock_data(["MO"])
+    vis_alpha.visualize_stock_data(["GGP"])
+    vis_alpha.visualize_stock_as_candlestick("GGP")
     # vis_alpha.visualize_stock_data(["SC0J.DE"])
     vis_alpha.visualize_dividenden_data(
         ["T", "XOM", "WBA", "ABBV", "IBM", "MMM", "CAT"]
@@ -103,6 +104,11 @@ def main():
     vis_results.visualize_symbol_vs_money_after_three_years()
     vis_results.visualize_vs_msiw(combined_data=pre_combine.combined_data)
     vis_results.visualize_scatter_plots()
+
+    vis_results.visualize_vs_eight_precent()
+    vis_results.visualize_all_portfolios_one_diagram()
+    vis_results.visualize_by_ranking_position()
+    vis_results.histogram_money_made_with_median_mode_mean()
 
     vis_combined = vis_pre.VisualizeCombinedData(pre_combine)
     vis_combined.fmp_vs_alpha("AAPL")
@@ -141,11 +147,8 @@ def main():
     #     start_date=pd.to_datetime("1995-01-01"), look_forward_years=7
     # ).to_csv("../data/results/one_year_result.csv")
 
-
-
     # apple_dividends = bl.SingleStockCheck()\
     # .get_dividends(pre_combine.combined_data, pd.to_datetime("2011-03-01"), 15, "AAPL")
-
 
     # print(bl.BruteforceChecks(pre_combine.combined_data)\
     #                            .test_a_portfolio(stock_results\
@@ -153,7 +156,6 @@ def main():
     #                            .iloc[:30]))
 
     # print(stock_results.sort_values(by="all", ascending=True)[0:30])
-
 
     # result = str_exec.StrategieExecution(
     #     pre_combine.combined_data
