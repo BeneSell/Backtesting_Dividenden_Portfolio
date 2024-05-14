@@ -66,6 +66,68 @@ class PreproccsesingTickerSymbol:
 
         return result_list
 
+    def get_ticker_symbol_for_specific_year(self, year = pd.to_datetime("2022-01-01")):
+        """
+        This function returns the sp500 at a specific year.
+        heavly based on the wikilist 
+        https://en.wikipedia.org/wiki/List_of_S%26P_500_companies
+        
+        sadly the second wikilist needs some adjustments
+        1. Delete the first header row
+        2. change the first column name "Ticker" to "Ticker_Added"
+        3. change the second column name "Ticker" to "Ticker_Removed"
+
+        args:
+            sp500_current (list): the current sp500 used
+            changes_to_sp500 (pd.DataFrame): the changes to the sp500
+            year (pd.Timestamp): the year to get the sp500 at
+        """
+
+        
+        sp500_current = pd.read_csv(
+            file_names["basic_paths"]["ticker_symbol_path"]
+            + file_names["file_names"]["company_names_from_wiki_1"],
+            encoding="latin-1"
+        )
+
+        changes_to_sp500 = pd.read_csv(
+            file_names["basic_paths"]["ticker_symbol_path"]
+            + file_names["file_names"]["company_names_from_wiki_2"],
+            encoding="latin-1",
+        )
+
+        current_sp500 = sp500_current["Symbol"].to_list()
+
+        changes_to_sp500["Date"] = pd.to_datetime(changes_to_sp500["Date"])
+        changes_to_sp500 = changes_to_sp500.sort_values(by="Date", ascending=False)
+
+        for x in changes_to_sp500.iterrows():
+            
+            # we have the current sp500
+            # we need the sp500 at x date
+            # so we iterate until x date and do the opposite changes
+            # if something got removed we add it to the current_sp500
+            # if something got added we remove it from the current_sp500
+            # if we reach the date x we stop
+            
+            # after that we have the sp500 at date x
+            if(not pd.isna(x[1]["Ticker_Added"])):
+
+                # remove the ticker from the current_sp500
+                # check if the ticker is in the current_sp500
+                if x[1]["Ticker_Added"] in current_sp500:
+                    current_sp500.remove(x[1]["Ticker_Added"])
+                
+
+
+            if(not pd.isna(x[1]["Ticker_Removed"])):
+                # add the ticker to the current_sp500
+                current_sp500.append(x[1]["Ticker_Removed"])
+
+            if(x[1]["Date"] < year):
+                break
+            
+        return current_sp500
 
 class PreproccessingAlphavantageData:
     """

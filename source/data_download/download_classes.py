@@ -18,12 +18,14 @@ with open("../config.json", "r", encoding="utf-8") as file_data:
 class DownloadFMP:
     """
     This class is used to download data from the Financial Modeling Prep API.
-
-    args:
-        secret_key_fmp: str: The secret key for the Financial Modeling Prep API.
     """
 
-    def __init__(self, secret_key_fmp):
+    def __init__(self):
+
+        with open("../secret_file.json", encoding="utf-8") as json_file:
+            data = json.load(json_file)
+            secret_key_fmp = data["secret_key_fmp"]
+
         self.secret_key_fmp = secret_key_fmp
         self.base_url = "https://financialmodelingprep.com/api/v3/"
         self.headers = {"Content-Type": "application/json"}
@@ -77,8 +79,8 @@ class DownloadFMP:
         elif choice == "read_csv":
             # read_csv solution
             sp500 = pd.read_csv(
-                file_names["basic_paths"]["downloaded_data_path"]
-                + file_names["file_names"]["x"]
+                file_names["basic_paths"]["ticker_symbol_path"]
+                + file_names["file_names"]["company_names"]
             )
 
             result_list = sp500
@@ -106,23 +108,26 @@ class DownloadFMP:
 
         result_list = self.get_company_ticker_symbols_by_choice()
 
-        raw_data_dividend = []
         for index, x in enumerate(result_list):
             url = f"https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/{ x }?apikey={self.secret_key_fmp}"
-            # !!!!!!carefull don't print url and commit!!!!!!!!
+
+            # small progression logic
             if index % 50 == 0:
                 print(index)
+
             r = requests.get(url, timeout=10)
             data = r.json()
-            raw_data_dividend.append(data)
-            # save to file every time because i dont want to lose data
+
+            # create a file for each stock
             with open(
-                file_names["basic_paths"]["downloaded_data_path"]
-                + file_names["file_names"]["dividend_fmp_from_internet"],
+                file_names["basic_paths"]["local_path_fmp_dividend"]
+                + file_names["file_names"]["temp_stock_info"]
+                + f"{x}.json",
                 "w",
                 encoding="utf-8",
             ) as outfile:
-                json.dump(raw_data_dividend, outfile)
+                json.dump(data, outfile)
+
             time.sleep(1)
 
     def downloadFMP_stock_data(self):
@@ -162,31 +167,31 @@ class DownloadFMP:
         result_list = self.get_company_ticker_symbols_by_choice()
 
         data_result_list = []
-
+        
         for x in result_list:
-            # if in local folder there is a file called StockDividend_x.json then read it
+            # if in local folder there is a file called x_dividend-historical.json then read it
             if os.path.isfile(
                 file_names["basic_paths"]["local_path_fmp_dividend"]
+                + f"{x}"
                 + file_names["file_names"]["temp_stock_info"]
-                + f"{x}.json"
             ):
                 with open(
                     file_names["basic_paths"]["local_path_fmp_dividend"]
-                    + file_names["file_names"]["temp_stock_info"]
-                    + f"{x}.json",
+                    + f"{x}"
+                    + file_names["file_names"]["temp_stock_info"],
                     encoding="utf-8",
                 ) as json_file:
                     data = json.load(json_file)
                     data_result_list.append(data)
 
         with open(
-            file_names["basic_paths"]["local_path_fmp_dividend"]
+            file_names["basic_paths"]["downloaded_data_path"]
             + file_names["file_names"]["dividend_fmp_from_local"],
             "w",
             encoding="utf-8",
         ) as outfile:
             json.dump(data_result_list, outfile)
-
+            
         return data_result_list
 
 

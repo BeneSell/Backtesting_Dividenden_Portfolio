@@ -174,10 +174,9 @@ class VisualizeAlphavantage:
         df_to_plot = df_with_selected_information[stock_symbol_list_with_date].copy()
 
         df_to_plot = df_to_plot.dropna(subset=[stock_symbol]).sort_values(by="date")
-        
+
         df_to_plot["timestamp"] = df_to_plot["date"].dt.to_timestamp()
         # set timestamp as index
-        
 
         fig = go.Figure(
             data=[
@@ -198,13 +197,14 @@ class VisualizeAlphavantage:
                 )
             ]
         )
-        
 
-        fig.update_layout(title=f"Ein Candlestick Diagramm von der Aktie: {stock_symbol}")
+        fig.update_layout(
+            title=f"Ein Candlestick Diagramm von der Aktie: {stock_symbol}"
+        )
         # add x axis label
         fig.update_xaxes(title_text="Zeit in Jahren")
         # add y axis label
-        fig.update_yaxes(title_text="Preis in Dollar")
+        fig.update_yaxes(title_text="Preis in USD")
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"]
             + f"{stock_symbol}_alpha_stock_candlestick.html"
@@ -269,34 +269,12 @@ class VisualizeAlphavantage:
         # ).write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
 
         fig = px.line(
-            data_frame=df_to_plot, x="date", y=stock_symbol_list, title="stock price"
+            data_frame=df_to_plot, x="date", y=stock_symbol_list, title=f"Aktienkurs der foglenden Aktien {' '.join(stock_symbol_list)}", labels={"date": "Zeit in Jahren", "value": "Preis in USD"}
         )
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"]
             + f"{stock_symbol_list}_alpha_stock.html"
         )
-
-        # df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
-        # df_to_plot.set_index("date", inplace=True)
-        # # make a line plot
-        # # make the line plot wider
-        # plt.figure(figsize=(10,5))
-        # # title
-        # plt.title(f"{' '.join(stock_symbol_list)} Stock Price")
-        # # ylabel
-        # plt.ylabel("Price")
-        # # xlabel
-        # plt.xlabel("Date")
-        # # reference line at 50 100 and 200
-        # plt.axhline(50, color="gray", linestyle="--")
-        # plt.axhline(100, color="gray", linestyle="--")
-        # plt.axhline(200, color="gray", linestyle="--")
-
-        # add xticks every 2 years
-
-        # plot the data
-        # plt.plot(df_to_plot)
-        # plt.show()
 
     def visualize_dividenden_data(self, stock_symbol_list=None):
         """
@@ -335,9 +313,9 @@ class VisualizeAlphavantage:
             kind="bar",
             x="date",
             y=stock_symbol_list,
-            title=f"Datetime plot '{stock_symbol_list}' from alphavantage",
-            xTitle="date",
-            yTitle="dividenden",
+            title=f"Dividenden der folgenden Aktien {' '.join(stock_symbol_list)} von alphavantage",
+            xTitle="Zeit in Jahren",
+            yTitle="Dividendenausschuettung in USD",
             asFigure=True,
         ).write_html(
             file_names["basic_paths"]["visualize_data_path"]
@@ -356,7 +334,7 @@ class VisualizeCombinedData:
         self.pre_combine = pre_combine
         self.combined_data = pre_combine.combined_data
 
-    def fmp_vs_alpha(self, stock_symbol: str = "ADBE"):
+    def fmp_vs_alpha_dividends(self, stock_symbol: str = "ADBE"):
         """
         visualize the stock data from fmp and alphavantage in same diagram
         from a given stock symbol
@@ -376,7 +354,6 @@ class VisualizeCombinedData:
         pivot_df = filtered_df.pivot_table(
             index="date", columns="information", values=stock_symbol, aggfunc="mean"
         ).rename(columns={"alpha_close": "alphavantage", "fmp_close": "fmp"})
-        print(pivot_df)
 
         # group by information and date
 
@@ -384,9 +361,9 @@ class VisualizeCombinedData:
             kind="bar",
             x="date",
             y=["alphavantage", "fmp"],
-            title=f"Datetime plot '{stock_symbol}'",
-            xTitle="date",
-            yTitle="dividenden",
+            title=f"Darstellung der Aktie: {stock_symbol} mit Aktienkurse von alphavantage und fmp",
+            xTitle="Zeit in Jahren",
+            yTitle="Dividendenausschuettung in USD",
             asFigure=True,
         ).write_html(
             file_names["basic_paths"]["visualize_data_path"]
@@ -404,7 +381,6 @@ class VisualizeCombinedData:
         """
 
         # Filter for 'adjusted close' and 'close' rows
-        print(self.combined_data["information"].unique())
         filtered_df = self.combined_data[
             self.combined_data["information"].isin(["alpha_close", "alpha_dividend"])
         ]
@@ -427,19 +403,21 @@ class VisualizeCombinedData:
             mode="lines",
             x=df_alpha_close["date"].dt.to_timestamp(),
             y=df_alpha_close[stock_symbol],
-            name= "Aktienkurs",
+            name="Aktienkurs von alphavantage in USD",
         )
         dividend_plot = go.Scatter(
             mode="lines",
             x=df_alpha_dividend["date"].dt.to_timestamp(),
             y=df_alpha_dividend[stock_symbol],
-            name= "Dividende",
+            name="Dividende von Financal Modeling Prep in USD",
         )
 
         fig.add_trace(close_plot, secondary_y=True)
         fig.add_trace(dividend_plot, secondary_y=False)
         # add title to fig
-        fig.update_layout(title=f"Darstellung der Aktie: {stock_symbol} mit Aktienkurse und Dividenden")
+        fig.update_layout(
+            title=f"Darstellung der Aktie: {stock_symbol} mit Aktienkurse und Dividenden"
+        )
 
         fig.write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
 

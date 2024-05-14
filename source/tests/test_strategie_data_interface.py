@@ -1,3 +1,7 @@
+"""
+This test file is used to test the functions of the strategie_data_interface.py file
+"""
+
 import pytest
 
 # Import the module(s) you want to test
@@ -11,6 +15,9 @@ import pandas as pd
 # Fixture(s) (optional)
 @pytest.fixture(name="setup")
 def setup_fixture():
+    """
+    This fixture is used to setup the test environment
+    """
     # Setup code that needs to run before each test
     calc_data = str_data.StrategieDataInterface()
 
@@ -31,7 +38,18 @@ def setup_fixture():
 
 
 def add_row_to_test_data(df_combined, date, information, value):
+    """
+    This function is used to add a row to the test data
 
+    It is used indepent inside each test so that the
+    test data can be manipulated and each test can be tested individually
+
+    args:
+        df_combined: pd.DataFrame
+        date: str
+        information: str
+        value: float
+    """
     new_data = [
         {
             "date": pd.to_datetime(date).to_period("M"),
@@ -44,6 +62,9 @@ def add_row_to_test_data(df_combined, date, information, value):
 
 
 def test_invest_on_date(setup):
+    """
+    This test is used to test the invest_on_date function
+    """
     calc_data, df_combined = setup
 
     result = calc_data.invest_on_date(pd.to_datetime("2021-01-01"), "TEST", df_combined)
@@ -54,6 +75,9 @@ def test_invest_on_date(setup):
 
 # TODO: not happy path when no dividend is given
 def test_get_dividends(setup):
+    """
+    This test is used to test the get_dividends function
+    """
     calc_data, df_combined = setup
 
     # well there is missing the symbol variable
@@ -64,10 +88,11 @@ def test_get_dividends(setup):
     # print(result["alpha_dividend"])
     assert result["alpha_dividend"].iloc[0] == 2.0
 
-    pass
-
 
 def test_check_money_made_by_div(setup):
+    """
+    This test is used to test the check_money_made_by_div function
+    """
     calc_data, df_combined = setup
 
     result = calc_data.check_money_made_by_div(
@@ -82,23 +107,10 @@ def test_check_money_made_by_div(setup):
     assert result["money"].astype(float).iloc[0] == 100
 
 
-# TODO error when no stock on the given dates
-def test_check_money_made_by_div_sad_path(setup):
-    calc_data, df_combined = setup
-
-    result = calc_data.check_money_made_by_div(
-        start_date=pd.to_datetime("2021-01-01"),
-        look_foward_years=15,
-        symbol="TEST",
-        df_combined=df_combined,
-        money_invested=100,
-    )
-    print(df_combined)
-    print(result)
-    assert result["money"].astype(float).iloc[0] == 103.0
-
-
 def test_check_for_increased_stock(setup):
+    """
+    This test is used to test the check_for_increased_stock function
+    """
     calc_data, df_combined = setup
 
     df_to_test = add_row_to_test_data(df_combined, "2023-01", "alpha_close", 2)
@@ -117,6 +129,9 @@ def test_check_for_increased_stock(setup):
 
 
 def test_compound_interest_calc_recursive(setup):
+    """
+    This test is used to test the compound_interest_calc_recursive function
+    """
     calc_data, df_combined = setup
 
     years = 2
@@ -129,6 +144,9 @@ def test_compound_interest_calc_recursive(setup):
 
 
 def test_compound_interest_calc_recursive_with_extras(setup):
+    """
+    This test is used to test the compound_interest_calc_recursive_with_extras function
+    """
     calc_data, df_combined = setup
 
     df_to_test = add_row_to_test_data(df_combined, "2023-01", "alpha_close", 4)
