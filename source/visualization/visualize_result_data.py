@@ -456,6 +456,7 @@ class VisualizeResultData:
         brutto_dividend = (
             brutto_dividend.groupby(by="sold_date").sum(numeric_only=True).reset_index()
         )
+        brutto_dividend["sold_date"] = brutto_dividend["sold_date"].astype(str)
 
         fig = px.bar(
             brutto_dividend,

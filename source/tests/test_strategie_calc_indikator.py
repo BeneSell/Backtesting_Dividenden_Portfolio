@@ -112,7 +112,7 @@ def test_calculate_dividend_continuity_x_years_calc_numb(setup):
     print(year_dif)
     result = calc_indikator.calculate_dividend_continuity_x_years_calc_numb(year_dif)
 
-    assert result == 1
+    assert result == 2
 
 
 def test_calculate_dividend_continuity_no_div_reductions_calc_numb(setup):

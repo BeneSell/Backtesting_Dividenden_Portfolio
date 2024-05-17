@@ -258,15 +258,6 @@ class VisualizeAlphavantage:
 
         df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
 
-        # df_to_plot.iplot(
-        #     kind="line",
-        #     x="date",
-        #     y=stock_symbol_list,
-        #     title=f"Datetime plot '{stock_symbol_list}' from alphavantage",
-        #     xTitle="date",
-        #     yTitle="stock price",
-        #     asFigure=True,
-        # ).write_html(f"../data/vis/{stock_symbol_list}_alpha_stock.html")
 
         fig = px.line(
             data_frame=df_to_plot, x="date", y=stock_symbol_list, title=f"Aktienkurs der foglenden Aktien {' '.join(stock_symbol_list)}", labels={"date": "Zeit in Jahren", "value": "Preis in USD"}
@@ -420,11 +411,3 @@ class VisualizeCombinedData:
         )
 
         fig.write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
-
-        # pivot_df.reset_index().iplot(kind="line", x="date",\
-        #  y=['alpha_close', 'alpha_dividend'],\
-        #  title=f"Datetime plot '{stock_symbol}'",\
-        #  xTitle="date",\
-        #  yTitle="dividenden",\
-        #  asFigure=True).write_html(f"../data/vis/{stock_symbol}_stock_vs_dividend.html")
-        # plt.show()
