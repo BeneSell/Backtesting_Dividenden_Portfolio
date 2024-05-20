@@ -93,10 +93,11 @@ Store all file paths in `config.json`:
 2. Install the required packages from `requirements.txt`.
 3. Obtain the company ticker symbols.
 4. Create the `config.json` and set up all paths as needed.
-5. Start the program.
-6. Download the data from the APIs using options 1, 2a, and 2c.
-7. Generate results using option 4.
-8. Generate visualizations using option 4.
+5. Navigate to the source folder using a terminal.
+6. Start the program with `python run`.
+7. Download the data from the APIs using options 1, 2a, and 2c.
+8. Generate results using option 4.
+9. Generate visualizations using option 4.
 
 ### Docker Setup
 
