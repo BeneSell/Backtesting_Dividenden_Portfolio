@@ -131,6 +131,7 @@ class StrategieDataInterface:
         if not dividends.empty and dividends["alpha_close"].count() > 0:
 
             # check if stock price on start date is not there but there are dividends to check
+            # this if statment is always false
             if np.isnan(start_stock_price):
                 start_stock_price = dividends["alpha_close"].iloc[0]
 

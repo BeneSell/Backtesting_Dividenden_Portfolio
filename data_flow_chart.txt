@@ -1,13 +1,13 @@
 flowchart TD
-    A[Download] -->
-    B[Preprocess] --->
-    C[Visualize]
-    B --> D[Bussiness Logic]
-    C --> E[Stock Chart]
-    C --> F[Candlestick Chart]
-    C --> G[Dividend Chart]
-    D --> H[Visualize]
-    H --> I[Portfolio Money Made]
-    H --> J[Money Distribution]
-    H --> K[Portfolios versus MSCI World]
-    H --> L[Scatter Charts Money Made versus Ranking]
+    A[Download Or Read - Stock Data]
+    A --> B[Preprocess Data]
+    B ---> C[Visualize Preprocess Data]
+    B --> D[Business Logic]
+    D --> E[Strategie Data Interface]
+    D --> F[Strategie Calculation]
+    D --> G[Strategie Excecution]
+    G --> H[Save Result Data]
+    
+    
+    I[Read Result Data]
+    I ----->J[Visualize Result Data]

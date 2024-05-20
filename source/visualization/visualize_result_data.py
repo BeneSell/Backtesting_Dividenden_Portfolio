@@ -13,7 +13,6 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import plotly.graph_objects as go
 
-import data_business_logic.strategie_execution as str_exec
 import data_business_logic.strategie_data_interface as str_data
 
 import cufflinks
@@ -21,7 +20,7 @@ import cufflinks
 cufflinks.go_offline()
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class VisualizeResultData:
@@ -33,72 +32,6 @@ class VisualizeResultData:
     def __init__(self, result_data: pd.DataFrame) -> None:
 
         self.result_data = result_data
-
-    def visualize_scatter_plots(self):
-        """
-        Generate some basic scatter plots
-
-        - rank_growth vs money_made
-        - rank_stability vs money_made
-        - rank_yield vs money_made
-        - yield vs money_made
-        - growth vs money_made
-        - stability vs money_made
-        - all vs money_made (no duplicates)
-
-        all written to a html file
-        """
-        self.result_data.iplot(
-            kind="bar",
-            x="symbol",
-            y="money_made",
-            title="Top 30 symbols",
-            xTitle="Symbol",
-            yTitle="Money made (AVG)",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_symbol_vs_money_made.html"
-        )
-        self.result_data.iplot(
-            kind="scatter",
-            x="time_span",
-            y="money_made",
-            mode="markers",
-            xTitle="Time span",
-            yTitle="Money made",
-            title="Money made vs time span",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_time_span_vs_money_made.html"
-        )
-        self.result_data.iplot(
-            kind="scatter",
-            x="look_forward_years",
-            y="money_made",
-            mode="markers",
-            xTitle="Look forward years",
-            yTitle="Money made",
-            title="Money made vs look forward years",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_look_forward_years_vs_money_made.html"
-        )
-        self.result_data.iplot(
-            kind="scatter",
-            x="look_backward_years",
-            y="money_made",
-            mode="markers",
-            xTitle="Look backward years",
-            yTitle="Money made",
-            title="Money made vs look backward years",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + "results_look_backward_years_vs_money_made.html"
-        )
 
     def visualize_vs_msiw(self, combined_data: pd.DataFrame):
         """
@@ -124,7 +57,6 @@ class VisualizeResultData:
         # so the missing point is add the future date to the msci world stock
 
         look_backward_years = 10
-        strategie_execution = str_exec.StrategieExecution(combined_data)
         calc_data = str_data.StrategieDataInterface()
 
         for year_selection in range(1, 30):
@@ -155,37 +87,40 @@ class VisualizeResultData:
             )
             start_investment = 3000
 
-            # list_msciworld = [
-            #     {
-            #         "money_made": calc_data.check_money_made_by_div(
-            #             start_date=pd.to_datetime(start_date)
-            #             + timedelta(days=365 * (look_backward_years)),
-            #             look_foward_years=x,
-            #             symbol="SC0J.DE",
-            #             df_combined=combined_data,
-            #             money_invested=start_investment,
-            #         ).iloc[-1]["money"],
-            #         "date": pd.to_datetime(start_date)
-            #         + timedelta(days=365 * look_backward_years)
-            #         + timedelta(days=365 * x),
-            #     }
-            #     for x in range(1, 4)
-            # ]
-
-            # if money_made is nan we have no data for msci world
-            # if np.isnan(float(list_msciworld[0]["money_made"])):
-            # print("no data for msci world")
-            # use 7.5 % as average return per anno
-            # 100 * 1.075**years
             list_msciworld = [
                 {
-                    "money_made": start_investment * 1.075**x,
+                    "money_made": calc_data.check_money_made_by_div(
+                        start_date=pd.to_datetime(start_date)
+                        + timedelta(days=365 * (look_backward_years)),
+                        look_foward_years=x,
+                        symbol="URTH",
+                        df_combined=combined_data,
+                        money_invested=start_investment,
+                    ).iloc[-1]["money"],
                     "date": pd.to_datetime(start_date)
                     + timedelta(days=365 * look_backward_years)
                     + timedelta(days=365 * x),
                 }
                 for x in range(1, 4)
             ]
+
+            msci_plot_name = "MSCI World, URTH (ISIN: IE00B6R52259)"
+
+            # if money_made is nan we have no data for msci world
+            if np.isnan(float(list_msciworld[0]["money_made"])):
+                # print("no data for msci world")
+                # use 8 % as average return per anno
+                # 100 * 1.08**years
+                list_msciworld = [
+                    {
+                        "money_made": start_investment * 1.08**x,
+                        "date": pd.to_datetime(start_date)
+                        + timedelta(days=365 * look_backward_years)
+                        + timedelta(days=365 * x),
+                    }
+                    for x in range(1, 4)
+                ]
+                msci_plot_name = "8% Wachstumsrate"
 
             list_msciworld = list_msciworld + [
                 {"money_made": start_investment, "date": middle_date}
@@ -232,15 +167,14 @@ class VisualizeResultData:
                 mode="lines",
                 x=portfolio_progression["future_date"],
                 y=portfolio_progression["money_made"],
-                name=f"close from portfolio {year_selection+1985}"
-                f"to {year_selection+ 1985 + look_backward_years} years",
+                name=f"Dividendenrendite des Portfolios von {year_selection+look_backward_years+1985} bis {year_selection+1985+look_backward_years+3} Jahren",
                 line=dict(color="blue"),
             )
             msci_plot = go.Scatter(
                 mode="lines",
                 x=msci_money_made["date"],
                 y=msci_money_made["money_made"],
-                name="msci world stock",
+                name=msci_plot_name,
                 line=dict(color="red"),
             )
 
@@ -249,106 +183,15 @@ class VisualizeResultData:
             # add title to fig
             # its from (1990 + 10 + 7 + 3) = 2010 to (1990 + 10 + 7 + 3 + 7) = 2010
             fig.update_layout(
-                title=f"msci world vs portfolio from"
-                f"{year_selection+look_backward_years+1985}"
-                f"to {year_selection+ 1985 +  look_backward_years + 3} years"
+                title=f"Vergleich der Dividendenrendite des Portfolios von {year_selection+look_backward_years+1985} bis {year_selection+1985+look_backward_years+3} Jahren mit MSCI World"
             )
 
             fig.write_html(
-                file_names["basic_paths"]["visualize_data_iterations"]
+                config_file["file_names"]["visualize_path"]
                 + "msci_world_vs_portfolio_"
                 f"{year_selection+ look_backward_years+ 1985}"
                 f"_{year_selection+ 1985 + look_backward_years + 3}.html"
             )
-
-    def visualize_histogram_plots(self):
-        """
-        This function is used to visualize the histogram plots from the result data
-        """
-        self.result_data[["money_made"]].iplot(
-            kind="histogram",
-            x="money_made",
-            xTitle="Money made",
-            yTitle="Frequency",
-            title="Money made histogram",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + file_names["file_names"]["histogram_money_made"]
-        )
-        # histogram symbols sort by frequency
-        self.result_data["symbol"].value_counts().iplot(
-            kind="bar",
-            xTitle="Symbol",
-            yTitle="Frequency",
-            title="Symbol frequency",
-            asFigure=True,
-        ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
-            + file_names["file_names"]["histogram_symbols"]
-        )
-
-        # histogram but with timespan selected before
-
-        for x in range(1, 35):
-            if self.result_data[(self.result_data["time_span"] == x)].empty:
-                continue
-
-            self.result_data[(self.result_data["time_span"] == x)]["money_made"].iplot(
-                kind="histogram",
-                x="money_made",
-                xTitle="Money made",
-                yTitle="Frequency",
-                title="Money made histogram",
-                asFigure=True,
-            ).write_html(
-                file_names["basic_paths"]["visualize_data_iterations"]
-                + f"histogram_money_made_timespan_{1985+x}_combined.html"
-            )
-
-            for y in range(3, 11):
-                if self.result_data[
-                    (self.result_data["time_span"] == x)
-                    & (self.result_data["look_backward_years"] == y)
-                ].empty:
-                    continue
-
-                self.result_data[
-                    (self.result_data["time_span"] == x)
-                    & (self.result_data["look_backward_years"] == y)
-                ][["money_made"]].iplot(
-                    kind="histogram",
-                    x="money_made",
-                    xTitle="Money made",
-                    yTitle="Frequency",
-                    title="Money made histogram",
-                    asFigure=True,
-                ).write_html(
-                    file_names["basic_paths"]["visualize_data_iterations"]
-                    + f"histogram_money_made_timespan_{1985+x}"
-                    f"_look_forward{y}_combined.html"
-                )
-
-                for z in range(3, 11):
-                    if self.result_data[
-                        (self.result_data["time_span"] == x)
-                        & (self.result_data["look_backward_years"] == y)
-                        & (self.result_data["look_forward_years"] == z)
-                    ].empty:
-                        continue
-
-                    # self.result_data[(self.result_data["time_span"] == x)
-                    #                     & (self.result_data["look_backward_years"] == y)
-                    #                     & (self.result_data["look_forward_years"] == z) ]\
-                    #                        [["money_made"]].iplot(kind="histogram",\
-                    #                        x="money_made",\
-                    #                        xTitle="Money made",\
-                    #                        yTitle="Frequency",\
-                    #                        title="Money made histogram",\
-                    #                        asFigure=True)\
-                    #                   .write_html("../data/vis/iteration_stuff/"\
-                    #                   f"histogram_money_made_timespan_{1990+x}"\
-                    #                   f"_look_forward{y}_look_backwards{z}.html")
 
     def visualize_symbol_vs_money_after_three_years(self):
         """
@@ -366,8 +209,6 @@ class VisualizeResultData:
 
         # filter copied_df that look_forward_years is 3
         copied_df = copied_df[copied_df["look_forward_years"] == 3]
-        print("moin")
-        print(copied_df["together"].min())
 
         for x in range(copied_df["together"].min(), copied_df["together"].max()):
 
@@ -380,7 +221,7 @@ class VisualizeResultData:
             temp_df = temp_df.drop_duplicates(subset=["symbol", "money_made"])
             fig = make_subplots(specs=[[{"secondary_y": True}]])
             fig.update_layout(
-                title=f"Money made vs symbol, Year the Investment ended: {1985+x}"
+                title=f"Rendite der Unternehmen bei dem Portfolio am Verkaufszeitpunkt: {1985+x}"
             )
             temp_df = temp_df.sort_values(by="rank_all", ascending=True)
             # combine temp_df[["look_backward_years","look_forward_years", "time_span"] ] with \n
@@ -404,11 +245,15 @@ class VisualizeResultData:
                 x="symbol",
                 y="money_made",
                 hover_data="info",
-                color="rank_all",
+                title=f"Rendite der Unternehmen bei dem Portfolio am Verkaufszeitpunkt: {1985+x} in USD",
+                labels={
+                    "symbol": "Unternehmen Ticker Symbol",
+                    "money_made": "Unternehmensrendite bei Verkauf in USD",
+                },
             )
 
             fig.write_html(
-                file_names["basic_paths"]["visualize_data_iterations"]
+                config_file["file_names"]["visualize_path"]
                 + f"symbol_vs_money_made_sold_on{1985 + x}.html"
             )
 
@@ -435,11 +280,14 @@ class VisualizeResultData:
             rankiest_rank_df["time_span"].astype(float)
         ) + 1998
         fig = px.bar(
-            rankiest_rank_df, x="year_sold", y="money_made", title="Money made per year"
+            rankiest_rank_df,
+            x="year_sold",
+            y="money_made",
+            title="Rendite der Portfolios",
         )
 
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"] + "all_portfolios.html"
+            config_file["file_names"]["visualize_path"] + "all_portfolios.html"
         )
 
     def visualize_vs_eight_precent(self):
@@ -465,8 +313,10 @@ class VisualizeResultData:
             .groupby(by="sold_date")
             .sum(numeric_only=True)
             .reset_index()
-            .sort_values(by="sold_date", ascending=False)
+            .sort_values(by="sold_date", ascending=True)
         )
+
+        dividends_df["sold_date"] = dividends_df["sold_date"].astype(str)
 
         eight_percent = 3000 * 1.08**3
 
@@ -475,8 +325,12 @@ class VisualizeResultData:
             dividends_df,
             x="sold_date",
             y="money_made",
-            title="Growth rate per year",
+            title="Alle Portfolios, mit 8% Wachstumsrate verglichen",
             color_discrete_sequence=["grey"],
+            labels={
+                "sold_date": "Verkaufszeitpunkt",
+                "money_made": "Unternehmensrendite bei Verkauf in USD",
+            },
         )
 
         # add to fig a line which is has the value 10
@@ -492,7 +346,7 @@ class VisualizeResultData:
         )
 
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + "money_made_with_growth_rate_box.html"
         )
 
@@ -510,7 +364,17 @@ class VisualizeResultData:
             & (to_plot["time_span"] != 28)
         ]
 
-        fig = px.histogram(to_plot, x="money_made")
+        fig = px.histogram(
+            to_plot,
+            x="money_made",
+            title="Histogramm, Unternehmensrendite bei Verkauf",
+            labels={
+                "money_made": "Unternehmensrendite bei Verkauf in USD",
+                "count": "Anzahl",
+            },
+        )
+
+        fig.update_yaxes(title_text="Anzahl")
         # add median to histogram
         fig.add_vline(
             x=to_plot["money_made"].median(),
@@ -539,7 +403,7 @@ class VisualizeResultData:
         )
         # round money made on from 111 to 110
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + "histogram_money_made_with_median_mode_mean.html"
         )
 
@@ -559,8 +423,51 @@ class VisualizeResultData:
             .mean(numeric_only=True)
             .reset_index()
         )
+        rankiest_rank_df["rank_of_all_ranks"] = rankiest_rank_df[
+            "rank_of_all_ranks"
+        ].astype(str)
 
-        fig = px.bar(rankiest_rank_df, x="rank_of_all_ranks", y="money_made")
+        fig = px.bar(
+            rankiest_rank_df,
+            x="rank_of_all_ranks",
+            y="money_made",
+            title="Unternehmensrendite bei Verkauf, gruppiert nach Rang des Unternehmens (durchschnittlich)",
+            labels={
+                "rank_of_all_ranks": "Rang des Unternehmens",
+                "money_made": "Durchschnittliche Unternehmensrendite bei Verkauf in USD",
+            },
+        )
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"] + "rank_vs_money_made.html"
+            config_file["file_names"]["visualize_path"] + "rank_vs_money_made.html"
+        )
+
+    def visualize_brutto_dividend(self):
+        """
+        This function is used to visualize the brutto dividend
+        """
+        brutto_dividend = self.result_data.copy()
+        brutto_dividend["sold_date"] = (
+            brutto_dividend["time_span"]
+            + brutto_dividend["look_forward_years"]
+            + brutto_dividend["look_backward_years"]
+            + 1985
+        )
+        brutto_dividend = brutto_dividend[brutto_dividend["look_forward_years"] == 3]
+        brutto_dividend = (
+            brutto_dividend.groupby(by="sold_date").sum(numeric_only=True).reset_index()
+        )
+        brutto_dividend["sold_date"] = brutto_dividend["sold_date"].astype(str)
+
+        fig = px.bar(
+            brutto_dividend,
+            x="sold_date",
+            y="brutto_dividend_money",
+            title="Dividendenrendite ohne Steuern pro Portfolio",
+            labels={
+                "sold_date": "Verkaufszeitpunkt",
+                "brutto_dividend_money": "Dividendenrendite ohne Steuern in USD",
+            },
+        )
+        fig.write_html(
+            config_file["file_names"]["visualize_path"] + "brutto_dividend.html"
         )

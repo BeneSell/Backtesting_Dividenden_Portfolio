@@ -3,14 +3,15 @@ This package is used to preprocess the data.
 It is used to normalize the data and to combine the data from different sources.
 """
 
-import pandas as pd
 import json
+import pandas as pd
+
 
 
 # from datetime import datetime, timedelta
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class PreproccsesingTickerSymbol:
@@ -21,51 +22,85 @@ class PreproccsesingTickerSymbol:
     it will create an array with all the ticker symbols
     """
 
-    def get_ticker_symbol(self):
+    def get_ticker_symbol_for_specific_year(self, year=pd.to_datetime("2022-01-01")):
         """
-        This function is used to get all the ticker symbols from the
-        wikidata_ticker_symbol_data.csv and the wikilist_1.csv and wikilist_2.csv
+        This function returns the sp500 at a specific year.
+        heavly based on the wikilist
+        https://en.wikipedia.org/wiki/List_of_S%26P_500_companies
+
+        sadly the second wikilist needs some adjustments
+        1. Delete the first header row
+        2. change the first column name "Ticker" to "Ticker_Added"
+        3. change the second column name "Ticker" to "Ticker_Removed"
+
+        args:
+            sp500_current (list): the current newest sp500
+            changes_to_sp500 (pd.DataFrame): the changes to the sp500
+            year (pd.Timestamp): the year to get the sp500 at
         """
-        symbol_df = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names"]
-        )
-        list_df_1 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_1"],
+
+        sp500_current = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_1"],
             encoding="latin-1",
         )
-        list_df_2 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_2"],
+
+        changes_to_sp500 = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_2"],
             encoding="latin-1",
         )
 
-        len(symbol_df["tickerSymbol"].unique())
-        # check which companies are missing in the wikidata_ticker_symbol_data.csv
-        result_list = []
-        result_list.extend(symbol_df["tickerSymbol"].to_list())
+        current_sp500 = sp500_current["Symbol"].to_list()
 
-        list_of_ticker_symbols_1 = list_df_1["Symbol"].unique()
+        changes_to_sp500["Date"] = pd.to_datetime(changes_to_sp500["Date"])
+        changes_to_sp500 = changes_to_sp500.sort_values(by="Date", ascending=False)
 
-        missing_ticker_symbols = []
-        for symbol in list_of_ticker_symbols_1:
-            if symbol not in symbol_df["tickerSymbol"].unique():
-                missing_ticker_symbols.append({"symbol": symbol, "list": "first"})
-                result_list.append(symbol)
+        for x in changes_to_sp500.iterrows():
 
-        list_of_ticker_symbols_2 = list_df_2["Removed"].unique()
-        for symbol in list_of_ticker_symbols_2:
-            if symbol not in symbol_df["tickerSymbol"].unique():
-                missing_ticker_symbols.append({"symbol": symbol, "list": "second"})
-                result_list.append(symbol)
+            # we have the current sp500
+            # we need the sp500 at x date
+            # so we iterate until x date and do the opposite changes
+            # if something got removed we add it to the current_sp500
+            # if something got added we remove it from the current_sp500
+            # if we reach the date x we stop
 
-        print(missing_ticker_symbols)
+            # after that we have the sp500 at date x
+            if not pd.isna(x[1]["Ticker_Added"]):
 
-        print(len(set(result_list)))
+                # remove the ticker from the current_sp500
+                # check if the ticker is in the current_sp500
+                if x[1]["Ticker_Added"] in current_sp500:
+                    current_sp500.remove(x[1]["Ticker_Added"])
 
-        return result_list
+            if not pd.isna(x[1]["Ticker_Removed"]):
+                # add the ticker to the current_sp500
+                current_sp500.append(x[1]["Ticker_Removed"])
 
+            if x[1]["Date"] < year:
+                break
+
+        return current_sp500
+
+    def setup_unique_ticker_symbols(self):
+        """
+        This function is used to setup the unique ticker symbols
+        from alle the ticker symbols we have
+        """
+        sp500_current = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_1"],
+            encoding="latin-1",
+        )
+
+        changes_to_sp500 = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_2"],
+            encoding="latin-1",
+        )
+        combined_series = pd.concat([sp500_current["Symbol"], changes_to_sp500["Ticker_Added"], changes_to_sp500["Ticker_Removed"]], axis=0)
+        
+
+        pd.Series(combined_series.unique()).to_csv(
+            config_file["file_names"]["company_names"]
+            , index=False
+        )
 
 class PreproccessingAlphavantageData:
     """
