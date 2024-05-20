@@ -237,7 +237,6 @@ class VisualizeAlphavantage:
         #        df_with_selected_information[x] = df_with_selected_information\
         #                                          [df_with_selected_information[x] != 0][x]
 
-        # TODO: one month later i can say you should probably use to_period
         # grouping the data by month so there
         # is no varriance occuring when plotting more than one column
         # for example
@@ -258,9 +257,12 @@ class VisualizeAlphavantage:
 
         df_to_plot["date"] = df_to_plot["date"].dt.to_timestamp()
 
-
         fig = px.line(
-            data_frame=df_to_plot, x="date", y=stock_symbol_list, title=f"Aktienkurs der foglenden Aktien {' '.join(stock_symbol_list)}", labels={"date": "Zeit in Jahren", "value": "Preis in USD"}
+            data_frame=df_to_plot,
+            x="date",
+            y=stock_symbol_list,
+            title=f"Aktienkurs der foglenden Aktien {' '.join(stock_symbol_list)}",
+            labels={"date": "Zeit in Jahren", "value": "Preis in USD"},
         )
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"]

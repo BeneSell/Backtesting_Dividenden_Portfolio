@@ -1,11 +1,17 @@
-import datetime
+"""
+    This module calculates the indicators for the strategy
+"""
 
-from datetime import timedelta
+import datetime
 
 import pandas as pd
 
 
 class StrategieCalcIndikator:
+    """
+    This class calculates the indicators for the strategy
+    """
+
     def difference_between_consecutive_years(
         self, dividends_of_stock: pd.DataFrame, start_date: datetime.date
     ):

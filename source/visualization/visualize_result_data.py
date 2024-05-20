@@ -13,7 +13,6 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import plotly.graph_objects as go
 
-import data_business_logic.strategie_execution as str_exec
 import data_business_logic.strategie_data_interface as str_data
 
 import cufflinks
@@ -34,7 +33,6 @@ class VisualizeResultData:
 
         self.result_data = result_data
 
-   
     def visualize_vs_msiw(self, combined_data: pd.DataFrame):
         """
         This function is used to compare all the data from the result data
@@ -187,7 +185,6 @@ class VisualizeResultData:
             fig.update_layout(
                 title=f"Vergleich der Dividendenrendite des Portfolios von {year_selection+look_backward_years+1985} bis {year_selection+1985+look_backward_years+3} Jahren mit MSCI World"
             )
-            
 
             fig.write_html(
                 file_names["basic_paths"]["visualize_data_iterations"]
@@ -371,7 +368,10 @@ class VisualizeResultData:
             to_plot,
             x="money_made",
             title="Histogramm, Unternehmensrendite bei Verkauf",
-            labels={"money_made": "Unternehmensrendite bei Verkauf in USD", "count": "Anzahl"},
+            labels={
+                "money_made": "Unternehmensrendite bei Verkauf in USD",
+                "count": "Anzahl",
+            },
         )
 
         fig.update_yaxes(title_text="Anzahl")
@@ -471,4 +471,3 @@ class VisualizeResultData:
         fig.write_html(
             file_names["basic_paths"]["visualize_data_path"] + "brutto_dividend.html"
         )
-

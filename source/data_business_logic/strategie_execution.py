@@ -1,3 +1,7 @@
+"""
+    This module is used to execute the strategy.
+"""
+
 import datetime
 from datetime import timedelta
 import concurrent.futures
@@ -9,8 +13,7 @@ import data_preprocessing.preproccess_classes as pre
 
 class StrategieExecution:
     """
-    well this is kinda changing i think but its for checking a lot of stocks
-    the code is heavy using SingleStockChecker
+    This class is used to execute the strategy.
     """
 
     def __init__(self, combined_data) -> None:
@@ -37,8 +40,11 @@ class StrategieExecution:
 
         result = []
 
-
-        current_sp500 = pre.PreproccsesingTickerSymbol().get_ticker_symbol_for_specific_year(pd.to_datetime(start_date))
+        current_sp500 = (
+            pre.PreproccsesingTickerSymbol().get_ticker_symbol_for_specific_year(
+                pd.to_datetime(start_date)
+            )
+        )
 
         # only use the stocks which are in the sp500 and inisde of the combined_data.columns
         current_sp500 = list(set(current_sp500) & set(self.combined_data.columns))

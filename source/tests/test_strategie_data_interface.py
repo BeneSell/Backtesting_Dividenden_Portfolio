@@ -106,9 +106,10 @@ def test_check_money_made_by_div(setup):
         money_invested=100,
     )
     print(result.columns)
-    print(result['current stock price'])
+    print(result["current stock price"])
     print(result)
     assert result["money"].astype(float).iloc[-1] == 200
+
 
 # check data when the company vanished (no data after x years)
 def test_check_money_made_by_div_company_vanished(setup):
@@ -128,6 +129,7 @@ def test_check_money_made_by_div_company_vanished(setup):
     print(df_combined)
     print(result)
     assert result["money"].astype(float).iloc[-1] == 0
+
 
 # check data when the company has no data on the start date
 def test_check_money_made_by_div_before(setup):
