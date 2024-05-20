@@ -20,7 +20,7 @@ import cufflinks
 cufflinks.go_offline()
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class VisualizeResultData:
@@ -187,7 +187,7 @@ class VisualizeResultData:
             )
 
             fig.write_html(
-                file_names["basic_paths"]["visualize_data_iterations"]
+                config_file["file_names"]["visualize_path"]
                 + "msci_world_vs_portfolio_"
                 f"{year_selection+ look_backward_years+ 1985}"
                 f"_{year_selection+ 1985 + look_backward_years + 3}.html"
@@ -253,7 +253,7 @@ class VisualizeResultData:
             )
 
             fig.write_html(
-                file_names["basic_paths"]["visualize_data_iterations"]
+                config_file["file_names"]["visualize_path"]
                 + f"symbol_vs_money_made_sold_on{1985 + x}.html"
             )
 
@@ -287,7 +287,7 @@ class VisualizeResultData:
         )
 
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"] + "all_portfolios.html"
+            config_file["file_names"]["visualize_path"] + "all_portfolios.html"
         )
 
     def visualize_vs_eight_precent(self):
@@ -346,7 +346,7 @@ class VisualizeResultData:
         )
 
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + "money_made_with_growth_rate_box.html"
         )
 
@@ -403,7 +403,7 @@ class VisualizeResultData:
         )
         # round money made on from 111 to 110
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + "histogram_money_made_with_median_mode_mean.html"
         )
 
@@ -438,7 +438,7 @@ class VisualizeResultData:
             },
         )
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"] + "rank_vs_money_made.html"
+            config_file["file_names"]["visualize_path"] + "rank_vs_money_made.html"
         )
 
     def visualize_brutto_dividend(self):
@@ -469,5 +469,5 @@ class VisualizeResultData:
             },
         )
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"] + "brutto_dividend.html"
+            config_file["file_names"]["visualize_path"] + "brutto_dividend.html"
         )

@@ -26,8 +26,10 @@ import pytest
 # get config.json data
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
+# if changes made to the wiki_files immediately update the ticker symbols
+pre.PreproccsesingTickerSymbol().setup_unique_ticker_symbols()
 
 def main():
     """
@@ -97,6 +99,7 @@ def execute_download_fmp():
 
     down_fmp = dl.DownloadFMP()
     down_fmp.downloadFMP_dividend_data()
+    down_fmp.downloadFMP_dividend_from_local()
 
 def execute_download_fmp_local():
     """
@@ -133,24 +136,21 @@ def execute_preproccesing():
     raw_data_alpha = {}
 
     with open(
-        file_names["basic_paths"]["downloaded_data_path"]
-        + file_names["file_names"]["fmp_dividends"],
+        config_file["file_names"]["fmp_dividends"],
         "r",
         encoding="utf-8",
     ) as json_file:
         raw_data_fmp_dividends = json.load(json_file)
 
     with open(
-        file_names["basic_paths"]["downloaded_data_path"]
-        + file_names["file_names"]["fmp_stocks"],
+        config_file["file_names"]["fmp_stocks"],
         "r",
         encoding="utf-8",
     ) as json_file:
         raw_data_fmp_stock_value = json.load(json_file)
 
     with open(
-        file_names["basic_paths"]["downloaded_data_path"]
-        + file_names["file_names"]["alpha_vantage_data"],
+        config_file["file_names"]["alpha_vantage_data"],
         encoding="utf-8",
     ) as json_file:
         data = json_file.read()
@@ -175,8 +175,7 @@ def execute_results():
     str_exec.StrategieExecution(
         pre_combine.combined_data
     ).check_along_time_and_timespan().to_csv(
-        file_names["basic_paths"]["result_data_path"]
-        + file_names["file_names"]["results_from_strategie_execution"]
+        config_file["file_names"]["results_from_strategie_execution"]
     )
 
 
@@ -185,8 +184,7 @@ def execute_generating_visualizations_from_results():
     This function is used to generate the results from the data
     """
     result_df = pd.read_csv(
-        file_names["basic_paths"]["result_data_path"]
-        + file_names["file_names"]["results_from_strategie_execution"]
+        config_file["file_names"]["results_from_strategie_execution"]
     )
 
     pre_combine = execute_preproccesing()[0]
@@ -273,8 +271,7 @@ def test_strategie_data_interface():
     pytest.main(
         [
             "-v",
-            file_names["basic_paths"]["test_path"]
-            + file_names["file_names"]["test_strategie_data_interface"],
+            config_file["file_names"]["test_strategie_data_interface"],
         ]
     )
 
@@ -286,8 +283,7 @@ def test_strategie_calc_indikator():
     pytest.main(
         [
             "-v",
-            file_names["basic_paths"]["test_path"]
-            + file_names["file_names"]["test_strategie_calc_indikator"],
+            config_file["file_names"]["test_strategie_calc_indikator"],
         ]
     )
 

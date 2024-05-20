@@ -11,7 +11,7 @@ import pandas as pd
 # from datetime import datetime, timedelta
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class PreproccsesingTickerSymbol:
@@ -21,51 +21,6 @@ class PreproccsesingTickerSymbol:
 
     it will create an array with all the ticker symbols
     """
-
-    def get_ticker_symbol(self):
-        """
-        This function is used to get all the ticker symbols from the
-        wikidata_ticker_symbol_data.csv and the wikilist_1.csv and wikilist_2.csv
-        """
-        symbol_df = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names"]
-        )
-        list_df_1 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_1"],
-            encoding="latin-1",
-        )
-        list_df_2 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_2"],
-            encoding="latin-1",
-        )
-
-        len(symbol_df["tickerSymbol"].unique())
-        # check which companies are missing in the wikidata_ticker_symbol_data.csv
-        result_list = []
-        result_list.extend(symbol_df["tickerSymbol"].to_list())
-
-        list_of_ticker_symbols_1 = list_df_1["Symbol"].unique()
-
-        missing_ticker_symbols = []
-        for symbol in list_of_ticker_symbols_1:
-            if symbol not in symbol_df["tickerSymbol"].unique():
-                missing_ticker_symbols.append({"symbol": symbol, "list": "first"})
-                result_list.append(symbol)
-
-        list_of_ticker_symbols_2 = list_df_2["Removed"].unique()
-        for symbol in list_of_ticker_symbols_2:
-            if symbol not in symbol_df["tickerSymbol"].unique():
-                missing_ticker_symbols.append({"symbol": symbol, "list": "second"})
-                result_list.append(symbol)
-
-        print(missing_ticker_symbols)
-
-        print(len(set(result_list)))
-
-        return result_list
 
     def get_ticker_symbol_for_specific_year(self, year=pd.to_datetime("2022-01-01")):
         """
@@ -79,20 +34,18 @@ class PreproccsesingTickerSymbol:
         3. change the second column name "Ticker" to "Ticker_Removed"
 
         args:
-            sp500_current (list): the current sp500 used
+            sp500_current (list): the current newest sp500
             changes_to_sp500 (pd.DataFrame): the changes to the sp500
             year (pd.Timestamp): the year to get the sp500 at
         """
 
         sp500_current = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_1"],
+            config_file["file_names"]["company_names_from_wiki_1"],
             encoding="latin-1",
         )
 
         changes_to_sp500 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names_from_wiki_2"],
+            config_file["file_names"]["company_names_from_wiki_2"],
             encoding="latin-1",
         )
 
@@ -127,6 +80,27 @@ class PreproccsesingTickerSymbol:
 
         return current_sp500
 
+    def setup_unique_ticker_symbols(self):
+        """
+        This function is used to setup the unique ticker symbols
+        from alle the ticker symbols we have
+        """
+        sp500_current = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_1"],
+            encoding="latin-1",
+        )
+
+        changes_to_sp500 = pd.read_csv(
+            config_file["file_names"]["company_names_from_wiki_2"],
+            encoding="latin-1",
+        )
+        combined_series = pd.concat([sp500_current["Symbol"], changes_to_sp500["Ticker_Added"], changes_to_sp500["Ticker_Removed"]], axis=0)
+        
+
+        pd.Series(combined_series.unique()).to_csv(
+            config_file["file_names"]["company_names"]
+            , index=False
+        )
 
 class PreproccessingAlphavantageData:
     """

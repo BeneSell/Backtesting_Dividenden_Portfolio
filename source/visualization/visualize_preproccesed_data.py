@@ -23,7 +23,7 @@ import cufflinks
 cufflinks.go_offline()
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class VisualizeFMP:
@@ -64,7 +64,7 @@ class VisualizeFMP:
             yTitle="dividend",
             asFigure=True,
         ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol}_fmp_dividende.html"
         )
 
@@ -105,7 +105,7 @@ class VisualizeFMP:
             ]
         )
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol}_fmp_stock_candlestick.html"
         )
 
@@ -134,7 +134,7 @@ class VisualizeFMP:
             yTitle="x",
             asFigure=True,
         ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol}_fmp_stock.html"
         )
 
@@ -206,7 +206,7 @@ class VisualizeAlphavantage:
         # add y axis label
         fig.update_yaxes(title_text="Preis in USD")
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol}_alpha_stock_candlestick.html"
         )
 
@@ -265,7 +265,7 @@ class VisualizeAlphavantage:
             labels={"date": "Zeit in Jahren", "value": "Preis in USD"},
         )
         fig.write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol_list}_alpha_stock.html"
         )
 
@@ -311,7 +311,7 @@ class VisualizeAlphavantage:
             yTitle="Dividendenausschuettung in USD",
             asFigure=True,
         ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol_list}_alpha_dividenden.html"
         )
 
@@ -359,7 +359,7 @@ class VisualizeCombinedData:
             yTitle="Dividendenausschuettung in USD",
             asFigure=True,
         ).write_html(
-            file_names["basic_paths"]["visualize_data_path"]
+            config_file["file_names"]["visualize_path"]
             + f"{stock_symbol}_alpha_vs_fmp.html"
         )
         # plt.show()

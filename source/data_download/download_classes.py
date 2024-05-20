@@ -12,7 +12,7 @@ import pandas as pd
 import requests
 
 with open("../config.json", "r", encoding="utf-8") as file_data:
-    file_names = json.load(file_data)
+    config_file = json.load(file_data)
 
 
 class DownloadFMP:
@@ -23,7 +23,7 @@ class DownloadFMP:
     def __init__(self):
 
         with open(
-            file_names["basic_paths"]["root_path"] + file_names["file_names"]["secret_file"], encoding="utf-8"
+            config_file["file_names"]["secret_file"], encoding="utf-8"
         ) as json_file:
             data = json.load(json_file)
             secret_key_fmp = data["secret_key_fmp"]
@@ -61,8 +61,7 @@ class DownloadFMP:
 
         # read_csv solution
         sp500 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names"]
+            config_file["file_names"]["company_names"]
         )
 
         result_list = sp500["0"].to_list()
@@ -91,9 +90,7 @@ class DownloadFMP:
 
             # create a file for each stock
             with open(
-                file_names["basic_paths"]["local_path_fmp_dividend"]
-                + file_names["file_names"]["temp_stock_info"]
-                + f"{x}.json",
+                config_file["file_names"]["temp_dividend_fmp"].replace("REPLACEDBYCODE", str(x)),
                 "w",
                 encoding="utf-8",
             ) as outfile:
@@ -119,8 +116,7 @@ class DownloadFMP:
             raw_data_stocks.append({"data": data, "symbol": x})
             # save to file every time because i dont want to lose data
             with open(
-                file_names["basic_paths"]["downloaded_data_path"]
-                + file_names["file_names"]["stock_fmp_from_internet"],
+                config_file["file_names"]["fmp_stocks"],
                 "w",
                 encoding="utf-8",
             ) as outfile:
@@ -146,22 +142,17 @@ class DownloadFMP:
         for x in result_list:
             # if in local folder there is a file called x_dividend-historical.json then read it
             if os.path.isfile(
-                file_names["basic_paths"]["local_path_fmp_dividend"]
-                + f"{x}"
-                + file_names["file_names"]["temp_stock_info"]
+                config_file["file_names"]["temp_dividend_fmp"].replace("REPLACEDBYCODE", str(x))
             ):
                 with open(
-                    file_names["basic_paths"]["local_path_fmp_dividend"]
-                    + f"{x}"
-                    + file_names["file_names"]["temp_stock_info"],
+                    config_file["file_names"]["temp_dividend_fmp"].replace("REPLACEDBYCODE", str(x)),
                     encoding="utf-8",
                 ) as json_file:
                     data = json.load(json_file)
                     data_result_list.append(data)
 
         with open(
-            file_names["basic_paths"]["downloaded_data_path"]
-            + file_names["file_names"]["dividend_fmp_from_local"],
+            config_file["file_names"]["fmp_dividends"],
             "w",
             encoding="utf-8",
         ) as outfile:
@@ -178,7 +169,7 @@ class DownloadAlphavantageData:
     def __init__(self):
 
         with open(
-            file_names["basic_paths"]["root_path"] + file_names["file_names"]["secret_file"], encoding="utf-8"
+            config_file["file_names"]["secret_file"], encoding="utf-8"
         ) as json_file:
             data = json.load(json_file)
             secret_key_alphavantage = data["secret_key_alphavantage"]
@@ -213,8 +204,7 @@ class DownloadAlphavantageData:
 
         
         sp500 = pd.read_csv(
-            file_names["basic_paths"]["ticker_symbol_path"]
-            + file_names["file_names"]["company_names"]
+            config_file["file_names"]["company_names"]
         )
 
         result_list = sp500
@@ -243,8 +233,7 @@ class DownloadAlphavantageData:
             time.sleep(1.5)
 
         with open(
-            file_names["basic_paths"]["downloaded_data_path"]
-            + file_names["file_names"]["alpha_vantage_data"],
+            config_file["file_names"]["alpha_vantage_data"],
             "w",
             encoding="utf-8",
         ) as fp:
