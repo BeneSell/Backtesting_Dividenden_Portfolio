@@ -54,7 +54,7 @@ Store your API keys in `secret_file.json`:
 
 ```json
 {
-    "secret_key": "API_KEY",
+    "secret_key_alphavantage": "API_KEY",
     "secret_key_fmp": "API_KEY"
 }
 ```
