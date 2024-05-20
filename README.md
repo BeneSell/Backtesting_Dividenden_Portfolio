@@ -104,7 +104,7 @@ Store all file paths in `config.json`:
 2. Obtain the company ticker symbols.
 3. Create the `config.json` and set up all paths as needed.
 4. Build the Docker image: `docker build -t backtesting_dividend_portfolio .`
-5. Run the Docker container: `docker run -it -v /path/to/local/data:/app/data backtesting_dividend_portfolio`
+5. Run the Docker container: `docker run -it -v /path/to/local/data:/app/data/visualize backtesting_dividend_portfolio`
    - The volume mount is necessary to get the visualizations from the program.
    - The `-it` flag is necessary for an interactive terminal.
 6. Download the data from the APIs using options 1, 2a, and 2c.
@@ -114,3 +114,5 @@ Store all file paths in `config.json`:
 ---
 
 This README provides a comprehensive guide to setting up and running the backtesting dividend portfolio project both locally and using Docker. 
+If you encounter any issues or get stuck during the setup or execution of this project, please don't hesitate to reach out. You can write to me directly or open an issue in the repository. 
+I'll do my best to assist you promptly.
