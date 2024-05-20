@@ -1,76 +1,116 @@
-# Backtesting_Dividenden_Portfolio
-## Table Of Content
-- Descirption
-- Structure
-- Getting Started
+# Backtesting Dividend Portfolio
 
 ## Description
 
-This repository downloads financial data and prepares them for backtesting usage.
+This repository performs backtesting on financial data for dividend portfolios. It requires specific configurations and datasets to operate fully. However, for testing purposes, there are provided test classes that are not constrained by specific data.
 
-At the moment I have two notebooks to download data one for financialmodelingprep and one by alphavantage.
+## Quick Start
 
-## Structure
+### Local Setup
+1. Download the repository.
+2. Install the required packages on your local Python setup.
+3. Create an empty `config.json` file.
+4. Navigate to the source folder using a terminal.
+5. Run the command: `python main.py`.
+6. **Note:** You can only use options 7a or 7b.
 
-There are two important things which are not included directly in the online repository
+### Docker Setup
+1. Download the repository.
+2. Create an empty `config.json` file.
+3. Run the command: `python main.py`.
+4. Build the Docker image: `docker build -t backtesting_dividend_portfolio .`
+5. Run the Docker container: `docker run -it backtesting_dividend_portfolio`.
+6. **Note:** You can only use options 7a or 7b.
 
-A `data` folder where all the data is stored. 
+## Setup
 
-the other data is directly scraped from a wikisite and has two lists:
-https://en.wikipedia.org/wiki/List_of_S%26P_500_companies#Selected_changes_to_the_list_of_S&P_500_components
+Follow these steps to set up the project. Alternatively, you can download and extract this [zip file](https://th-koeln.sciebo.de/s/TJeKTtYPWlVtwph) in the main folder of this project. 
 
-- first list is saved in `wikilist_1.csv`
-- second list is saved in `wikilist_2.csv`
+**Note:** You still need to download data and use your own API keys.
 
-using tools close to this one: https://wikitable2csv.ggor.de/
+### Get Company Ticker Symbols
 
-### stock_infos folder is the destination folder and the informations are generated while using the programm
+Company names are all the unique values from these two lists:
+- [List of S&P 500 Companies](https://en.wikipedia.org/wiki/List_of_S%26P_500_companies#Selected_changes_to_the_list_of_S&P_500_components)
 
+You can scrape the data using tools like [wikitable2csv](https://wikitable2csv.ggor.de/).
 
-A `secret_file.json` where the api keys are saved.
+### Create Folders
 
-the secrect_file.json looks like this 
+Ensure the following folders are created:
 
-```json
-{"secret_key":"API_KEY",
-"secret_key_fmp":"API_KEY"}
+```
+data/ticker_names
+data/stock_data
+data/stock_data/downloaded_divs_from_fmp
+data/strategy_result
+data/visualize
 ```
 
-A `config.json` where all file paths are stored
+### Configuration Files
+
+#### `secret_file.json`
+
+Store your API keys in `secret_file.json`:
 
 ```json
 {
-    "basic_paths":{
-        "ticker_symbol_path": "../data/companies/",
-        "downloaded_data_path": "../data/stock_infos/",
-        "result_data_path": "../data/results/",
-        "visualize_data_path": "../data/vis/",
-        "visualize_data_iterations": "../data/vis/iteration_stuff/",
-        "local_path_fmp_dividend": "../data/stock_infos/local/"
-    },
-    "file_names":{
-        "fmp_dividends": "raw_data_fmp_from_local_div.json"
-        , "fmp_stocks": "raw_data_fmp_stock_value.json"
-        , "alpha_vantage_data": "result.json"
-        , "results_from_strategie_execution": "bruteforce_results.csv"
-        , "company_names": "combined_historical_ticker_symbols.csv"
-        , "company_names_i_dont_have_local": "companies_i_dont_have_local.csv"
-        , "dividend_fmp_from_internet": "raw_data_fmp.json"
-        , "stock_fmp_from_internet": "raw_data_fmp_stock_value.json"
-        , "temp_stock_info": "_dividend-historical.json"
-        , "dividend_fmp_from_local": "raw_data_fmp_from_local_div.json"
-        , "company_names_from_wiki_1": "wikilist_1.csv"
-        , "company_names_from_wiki_2": "wikilist_2.csv"
-        , "histogram_money_made": "histogram_money_made.html"
-        , "histogram_symbols": "histogram_symbols.html"
+    "secret_key": "API_KEY",
+    "secret_key_fmp": "API_KEY"
+}
+```
+
+#### `config.json`
+
+Store all file paths in `config.json`:
+
+```json
+{
+    "file_names": {
+        "company_names": "../data/ticker_names/ticker_symbols.csv",
+        "company_names_from_wiki_1": "../data/ticker_names/wikilist_1.csv",
+        "company_names_from_wiki_2": "../data/ticker_names/wikilist_2.csv",
+        "fmp_dividends": "../data/stock_infos/fmp_dividend_data.json",
+        "fmp_stocks": "../data/stock_infos/fmp_stock_data.json",
+        "alpha_vantage_data": "../data/stock_infos/alpha_vantage_dividend_and_stock_data.json",
+        "temp_dividend_fmp": "../data/stock_infos/downloaded_divs_from_fmp/REPLACEDBYCODE_dividend-historical.json",
+        "results_from_strategie_execution": "../data/results/strategy_results.csv",
+        "histogram_money_made": "../data/vis/histogram_money_made.html",
+        "histogram_symbols": "../data/vis/histogram_symbols.html",
+        "visualize_path": "../data/visualize/",
+        "test_strategie_data_interface": "./tests/test_strategie_data_interface.py",
+        "test_strategie_calc_indikator": "./tests/test_strategie_calc_indikator.py",
+        "secret_file": "../secret_file.json"
     }
 }
 ```
 
-# Getting Started
+## Getting Started
 
-1. Create secret_file.json with your secret key
-2. Add folder structure as you need 
-3. Add `companies` and `stock_info` folder
-4. Add `s&p_companies_ticker_name.csv` inside the folder companies
+### Local Setup
 
+1. Download the repository.
+2. Install the required packages from `requirements.txt`.
+3. Obtain the company ticker symbols.
+4. Create the `config.json` and set up all paths as needed.
+5. Start the program.
+6. Download the data from the APIs using options 1, 2a, and 2c.
+7. Generate results using option 4.
+8. Generate visualizations using option 4.
+
+### Docker Setup
+
+1. Download the repository.
+2. Obtain the company ticker symbols.
+3. Create the `config.json` and set up all paths as needed.
+4. Build the Docker image: `docker build -t backtesting_dividend_portfolio .`
+5. Run the Docker container: `docker run -it -v /path/to/local/data:/app/data backtesting_dividend_portfolio`
+   - The volume mount is necessary to get the visualizations from the program.
+   - The `-it` flag is necessary for an interactive terminal.
+6. Download the data from the APIs using options 1, 2a, and 2c.
+7. Generate results using option 4.
+8. Generate visualizations using option 5.
+
+---
+
+This README provides a comprehensive guide to setting up and running the backtesting dividend portfolio project both locally and using Docker. 
