@@ -12,15 +12,14 @@ This repository performs backtesting on financial data for dividend portfolios. 
 3. Create an empty `config.json` file.
 4. Navigate to the source folder using a terminal.
 5. Run the command: `python main.py`.
-6. **Note:** You can only use options 7a or 7b.
+- **Note:** You can only use options 7a or 7b.
 
 ### Docker Setup
 1. Download the repository.
 2. Create an empty `config.json` file.
-3. Run the command: `python main.py`.
-4. Build the Docker image: `docker build -t backtesting_dividend_portfolio .`
-5. Run the Docker container: `docker run -it backtesting_dividend_portfolio`.
-6. **Note:** You can only use options 7a or 7b.
+3. Build the Docker image: `docker build -t backtesting_dividend_portfolio .`
+4. Run the Docker container: `docker run -it backtesting_dividend_portfolio`.
+- **Note:** You can only use options 7a or 7b.
 
 ## Setup
 
