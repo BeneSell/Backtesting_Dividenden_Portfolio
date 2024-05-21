@@ -220,6 +220,7 @@ class DownloadAlphavantageData:
         """
 
         result_list = self.get_company_ticker_symbols()
+        result_list.append("URTH")
 
         raw_data = []
         for index, x in enumerate(result_list):
