@@ -28,8 +28,11 @@ import pytest
 with open("../config.json", "r", encoding="utf-8") as file_data:
     config_file = json.load(file_data)
 
-# if changes made to the wiki_files immediately update the ticker symbols
-pre.PreproccsesingTickerSymbol().setup_unique_ticker_symbols()
+try:
+    pre.PreproccsesingTickerSymbol().setup_unique_ticker_symbols()
+except FileNotFoundError:
+    print("The file with the unique ticker symbols is not found")
+    print("You can still run option 7a and 7b")
 
 def main():
     """
