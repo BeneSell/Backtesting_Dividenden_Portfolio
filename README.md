@@ -99,7 +99,7 @@ Store all file paths in `config.json`:
 3. Obtain the company ticker symbols.
 4. Create the `config.json` and set up all paths as needed.
 5. Navigate to the source folder using a terminal.
-6. Start the program with `python run`.
+6. Start the program with `python main.py`.
 7. Download the data from the APIs using options 1, 2a, and 2c.
 8. Generate results using option 4.
 9. Generate visualizations using option 4.
@@ -119,6 +119,5 @@ Store all file paths in `config.json`:
 
 ---
 
-This README provides a comprehensive guide to setting up and running the backtesting dividend portfolio project both locally and using Docker. 
-If you encounter any issues or get stuck during the setup or execution of this project, please don't hesitate to reach out. You can write to me directly or open an issue in the repository. 
+If you encounter any issues during the setup or execution of this project, please don't hesitate to reach out. You can write to me directly or open an issue in the repository. 
 I'll do my best to assist you promptly.
