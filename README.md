@@ -8,7 +8,7 @@ This repository performs backtesting on financial data for dividend portfolios. 
 
 ### Local Setup
 1. Clone the repository.
-2. Install the required packages on your local Python setup.
+2. Install the required packages from `requirements.txt`.
 3. Copy and Paste the `config.json` file from the setup inside the root directory.
 4. Navigate to the source folder using a terminal.
 5. Run the command: `python main.py`.
@@ -23,7 +23,13 @@ This repository performs backtesting on financial data for dividend portfolios. 
 
 ## Setup
 
-Follow these steps to set up the project. Alternatively, you can download and extract this [zip file](https://th-koeln.sciebo.de/s/TJeKTtYPWlVtwph) in the main folder of this project. 
+Follow these steps to set up the project. 
+
+Alternatively, you can download and extract this setup directory https://th-koeln.sciebo.de/s/TJeKTtYPWlVtwph in the main folder of this project. 
+It includes: 
+- Folder directory
+- Ticker names
+- Config files
 
 **Note:** You still need to download data and use your own API keys.
 
