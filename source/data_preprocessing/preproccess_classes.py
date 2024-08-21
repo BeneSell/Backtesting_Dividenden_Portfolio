@@ -380,6 +380,7 @@ class PreproccessingCombinedData:
                 " adjusted close": "alpha_close",
             }
         )
+        
 
         # df_concat["information"] = df_concat["information"].replace(
         #     {

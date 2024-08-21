@@ -6,6 +6,7 @@ The classes are used in the main.py file to download data from the APIs and save
 import os
 import time
 import json
+from datetime import datetime, timedelta
 
 
 import pandas as pd
@@ -235,6 +236,43 @@ class DownloadAlphavantageData:
 
         with open(
             config_file["file_names"]["alpha_vantage_data"],
+            "w",
+            encoding="utf-8",
+        ) as fp:
+            json.dump(raw_data, fp)
+
+    def add_newest_alphavantage_stock_and_dividend_data(self):
+        """
+        This function is used to add the newest stock and dividend data to the existing data.
+        """
+        # read from file
+        with open(
+            config_file["file_names"]["alpha_vantage_data"],
+            encoding="utf-8",
+        ) as json_file:
+            data = json.load(json_file)
+
+        # get newest entry from data
+        newest_date = pd.to_datetime(data[-1]["Meta Data"]["3. Last Refreshed"])
+        print(newest_date)
+
+        result_list = self.get_company_ticker_symbols()
+        result_list.append("URTH")
+
+        raw_data = []
+        for index, x in enumerate(result_list):
+            url = f"https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={ x }&apikey={self.secret_key_alphavantage}"
+            # !!!!!!carefull don't print url and commit!!!!!!!!
+            if index % 50 == 0:
+                print(index)
+            r = requests.get(url, timeout=10)
+            data = r.json()
+
+            raw_data.append(data)
+            time.sleep(1.5)
+
+        with open(
+            config_file["file_names"]["alpha_vantage_data"].replace(".json","") + newest_date.strftime("%Y-%m-%d") + ".json",
             "w",
             encoding="utf-8",
         ) as fp:

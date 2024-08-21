@@ -72,7 +72,7 @@ class StrategieExecution:
             # stop when no dividends are found
             if temp_dividends.empty:
                 continue
-
+            
             # maybe not a good name for this variable
             yearly_difference = calc_indikator.difference_between_consecutive_years(
                 temp_dividends,
@@ -86,10 +86,18 @@ class StrategieExecution:
             if yearly_difference.empty:
                 continue
 
+            if self.combined_data[self.combined_data["information"] == "alpha_close"][x].empty:
+                continue
+
             # now the calc_numbs
             temp_continuity_x_years_calc_numb = (
                 calc_indikator.calculate_dividend_continuity_x_years_calc_numb(
                     yearly_difference
+                )
+            )
+            temp_variance_continuity_numb = (
+                calc_indikator.calculate_dividend_variance_continuity_numb(
+                    temp_dividends
                 )
             )
             temp_continuity_no_cuts_calc_numb = calc_indikator.calculate_dividend_continuity_no_div_reductions_calc_numb(
@@ -120,6 +128,7 @@ class StrategieExecution:
                 {
                     "symbol": x,
                     "calc_numb_continuity_no_cuts": temp_continuity_no_cuts_calc_numb,
+                    "calc_numb_variance_continuity": temp_variance_continuity_numb,
                     "calc_numb_continuity_x_years": temp_continuity_x_years_calc_numb,
                     "calc_numb_growth_x_times": temp_growth_x_times_calc_numb,
                     "calc_numb_growth_indikative": temp_growth_indikative_calc_numb,
@@ -137,6 +146,10 @@ class StrategieExecution:
         result_df["rank_continuity_no_cuts"] = result_df[
             "calc_numb_continuity_no_cuts"
         ].rank(ascending=False)
+        result_df["rank_variance_continuity"] = result_df[
+            "calc_numb_variance_continuity"
+        ].rank(ascending=True)
+
         result_df["rank_continuity_x_years"] = result_df[
             "calc_numb_continuity_x_years"
         ].rank(ascending=False)
@@ -154,7 +167,8 @@ class StrategieExecution:
             ascending=False
         )
         result_df["rank_all"] = (
-            result_df["rank_continuity_no_cuts"]
+            
+            result_df["rank_variance_continuity"]
             + result_df["rank_continuity_x_years"]
             + result_df["rank_growth_x_times"]
             + result_df["rank_growth_indikative"]
@@ -206,6 +220,9 @@ class StrategieExecution:
                     "brutto_dividend_money": temp_dividend_made,
                     "calc_numb_continuity_no_cuts": temp_df_symbol[
                         "calc_numb_continuity_no_cuts"
+                    ].iloc[0],
+                    "calc_numb_variance_continuity": temp_df_symbol[
+                        "calc_numb_variance_continuity"
                     ].iloc[0],
                     "calc_numb_continuity_x_years": temp_df_symbol[
                         "calc_numb_continuity_x_years"

@@ -46,6 +46,7 @@ def main():
         print("2a: Download Dividend data from Financial Modeling Prep")
         print("2b: Download Dividend data from Financial Modeling Prep from Local Folder")
         print("2c: Download Stock data from Financial Modeling Prep from Local Folder")
+        print("2d: Download newest data from Alphavantage")
         print("Preprocess data")
         print("3: Preprocess data")
         print("Generate results")
@@ -61,7 +62,9 @@ def main():
         print("Test strategies")
         print("7a: Test the strategie_data_interface.py file")
         print("7b: Test the strategie_calc_indikator.py file")
-        print("8: Exit")
+        print("8. Debugging")
+        print("8a: check_all_stocks()")
+        print("9: Exit")
         
         user_input = input("Please enter a number: ")
 
@@ -74,6 +77,8 @@ def main():
             execute_download_fmp_local()
         elif user_input == "2c":
             execute_download_fmp_stock()
+        elif user_input == "2d":
+            execute_download_newest_alpha()
         elif user_input == "3":
             execute_preproccesing()
         elif user_input == "4":
@@ -89,7 +94,9 @@ def main():
             test_strategie_data_interface()
         elif user_input == "7b":
             test_strategie_calc_indikator()
-        elif user_input == "8":
+        elif user_input == "8a":
+            execute_check_all_stocks()
+        elif user_input == "9":
             break
         else:
             print("Please enter a valid number")
@@ -127,6 +134,14 @@ def execute_download_alpha():
 
     down_alpha = dl.DownloadAlphavantageData()
     down_alpha.download_alphavantage_stock_and_dividend_data()
+
+def execute_download_newest_alpha():
+    """
+    This function is used to download the data from the Alphavantage API
+    """
+
+    down_alpha = dl.DownloadAlphavantageData()
+    down_alpha.add_newest_alphavantage_stock_and_dividend_data()
 
 
 def execute_preproccesing():
@@ -201,6 +216,8 @@ def execute_generating_visualizations_from_results():
     vis_results.visualize_by_ranking_position()
     vis_results.histogram_money_made_with_median_mode_mean()
     vis_results.visualize_brutto_dividend()
+    vis_results.visualize_table_symbol_count_mean_median_added_ranking_ranking()
+    vis_results.vs_eight_precent_table()
 
 
 def execute_generating_visualizations_from_preproccessed_data():
@@ -289,6 +306,19 @@ def test_strategie_calc_indikator():
             config_file["file_names"]["test_strategie_calc_indikator"],
         ]
     )
+
+def execute_check_all_stocks():
+    """
+    This function is used to test the strategie_calc_indikator.py file
+    """
+    preproccesed = execute_preproccesing()
+
+    pre_combine = preproccesed[0]
+
+    checked = str_exec.StrategieExecution(
+        pre_combine.combined_data
+    ).check_all_stocks()
+    print(checked)
 
 
 if __name__ == "__main__":

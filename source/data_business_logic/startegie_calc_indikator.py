@@ -5,6 +5,7 @@
 import datetime
 
 import pandas as pd
+import numpy as np
 
 
 class StrategieCalcIndikator:
@@ -79,6 +80,16 @@ class StrategieCalcIndikator:
         a calc_numb which shows how many years the dividend is paid consecutively
         """
         return yearly_difference["year"].count()
+
+    def calculate_dividend_variance_continuity_numb(
+            self, dividends_of_stock: pd.DataFrame
+    ):
+        """
+        a calc_numb which shows the variance of the dividend
+        """
+        return  pd.Series(np.gradient(dividends_of_stock["date"].dt.to_timestamp())).dt.days.var()
+        
+        
 
     def calculate_dividend_continuity_no_div_reductions_calc_numb(
         self, yearly_difference: pd.DataFrame

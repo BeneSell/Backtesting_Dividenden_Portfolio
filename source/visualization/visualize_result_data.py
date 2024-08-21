@@ -471,3 +471,96 @@ class VisualizeResultData:
         fig.write_html(
             config_file["file_names"]["visualize_path"] + "brutto_dividend.html"
         )
+
+    def visualize_table_symbol_count_mean_median_added_ranking_ranking(self):
+        """
+        This function is used to visualize the table with the symbol count mean median and ranking
+        """
+        result_df = self.result_data.copy()
+        dividends_df = result_df[(result_df["look_forward_years"] == 3) & (result_df["time_span"] != 28) & (result_df["time_span"] != 27) & (result_df["time_span"] != 25) & (result_df["time_span"] != 26) ]
+        
+        grouped_df = dividends_df.groupby(by="symbol")
+        new_df = pd.DataFrame()
+        new_df["count"] = grouped_df["time_span"].count().round(0)
+        new_df["mean"] = grouped_df["money_made"].mean().round(4)
+        new_df["median"] = grouped_df["money_made"].median().round(4)
+        new_df["added_ranking"] = grouped_df["rank_of_all_ranks"].mean().round(0)
+        new_df["ranking"] = new_df["mean"].rank(ascending=False) + new_df["count"].rank(ascending=False)
+        new_df = new_df.reset_index().sort_values(by="ranking", ascending=True)
+
+        fig = go.Figure(data=[go.Table(header=dict(values=list(new_df.columns), fill_color="paleturquoise", align="left"), 
+                            cells=dict(values=[
+                                new_df["count"],
+                                new_df["mean"],
+                                new_df["median"],
+                                new_df["added_ranking"],
+                                new_df["ranking"],
+                                new_df["symbol"]],
+                                fill_color="lavender",
+                                align="left"))])
+        
+        fig.update_layout(updatemenus=[{
+            "buttons": [
+                {
+                    "method": "restyle",
+                    "label": "Symbol",
+                    "args": [{"cells": {"values": new_df.sort_values(by='symbol').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='symbol', ascending=False).values.T }}]
+                },
+                {
+                    "method": "restyle",
+                    "label": "Count",
+                    "args": [{"cells": {"values": new_df.sort_values(by='count').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='count', ascending=False).values.T }}]
+                },
+                {
+                    "method": "restyle",
+                    "label": "Mean",
+                    "args": [{"cells": {"values": new_df.sort_values(by='mean').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='mean', ascending=False).values.T }}]
+                },
+                {
+                    "method": "restyle",
+                    "label": "Median",
+                    "args": [{"cells": {"values": new_df.sort_values(by='median').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='median', ascending=False).values.T }}]
+                },
+                {
+                    "method": "restyle",
+                    "label": "Added Ranking",
+                    "args": [{"cells": {"values": new_df.sort_values(by='added_ranking').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='added_ranking', ascending=False).values.T }}]
+                },
+                {
+                    "method": "restyle",
+                    "label": "Ranking",
+                    "args": [{"cells": {"values": new_df.sort_values(by='ranking').values.T }}],
+                    "args2": [{"cells": {"values": new_df.sort_values(by='ranking', ascending=False).values.T }}]
+                }
+            ]         
+        }])
+        fig.write_html(config_file["file_names"]["visualize_path"] + "table_symbol_count_mean_median_added_ranking_ranking.html")
+
+    def vs_eight_precent_table(self):
+
+        years = 3
+        dividends_df = self.result_data.copy()
+        
+        dividends_df = dividends_df[(dividends_df["look_forward_years"] == 3) & (dividends_df["time_span"] != 28) & (dividends_df["time_span"] != 27) & (dividends_df["time_span"] != 25) & (dividends_df["time_span"] != 26) ].groupby(by="time_span").sum().reset_index().sort_values(by="time_span", ascending=False)
+        dividends_df["seven_percent"] = 3000 * 1.075 ** 3
+        dividends_df["eight_percent"] = 3000 * 1.08 ** 3
+        dividends_df["growth_rate"] = ((dividends_df["money_made"] / 3000) ** (1 / years) - 1) * 100
+        dividends_df["year"] = dividends_df["time_span"] + 1999
+        dividends_df = dividends_df.sort_values(by="growth_rate", ascending=False)
+
+        fig = go.Figure(data=[go.Table(header=dict(values=list(["time_span", "money_made", "brutto_dividend_money", "seven_percent", "eight_percent", "growth_rate"]), fill_color="paleturquoise", align="left"),
+                            cells=dict(values=[
+                                dividends_df["year"],
+                                dividends_df["money_made"],
+                                dividends_df["brutto_dividend_money"],
+                                dividends_df["seven_percent"],
+                                dividends_df["eight_percent"],
+                                dividends_df["growth_rate"]],
+                                fill_color="lavender",
+                                align="left"))])
+        fig.write_html(config_file["file_names"]["visualize_path"] + "table_vs_eight_percent.html")
